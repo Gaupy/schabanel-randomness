@@ -109,6 +109,9 @@
 %    Abstract is required.
 \begin{abstract}
 \textbf{[to do]}
+In this, we will introduce a technique for transforming approximations algorithms
+into constant time algorithms that approximate the size of the optimal solution.
+
 \end{abstract}
 
 \maketitle
@@ -116,8 +119,23 @@
 \section{A constant time Algorithm}
 
 \textbf{[write a concise presentation; introduce the notations like $G$, etc.]}
+\begin{definition}
+Let $G=(V,E)$ a given graph, $n$ a bound on the size of $V$, $d$ a bound on $G$'s 
+maximum degree.\\
+$M$ is a maximal matching if for all edges of $E\setminus M$, all its adjacent edges
+are not in the matching.
+\end{definition}
 
-Computing the size of a maximal matching in a constant degree (bounded by $d$) graph.
+\begin{remark}
+Do not mistake maximal matching with maximal matching which are a bit harder to find.
+(Maximal matching of maximum size).
+\end{remark}
+
+The Main algorithm uses an Oracle (\textit{Magic test}) as input, to get a good 
+approximation in constant time of the size of a maximal matching. We suppose here 
+that the graph has a constant degree (bounded by $d$).\\
+We suppose that the Oracle gives him a maximal matching $M$.
+%Computing the size of a maximal matching in a constant degree (bounded by $d$) graph.
 
 \begin{algorithm}{Main algorithm}
 \algoline{$S:=0$; $t:=\Theta(d^2/\varepsilon^2)$;}
@@ -126,7 +144,8 @@ Computing the size of a maximal matching in a constant degree (bounded by $d$) g
 \algoline{\tab test if $e \in M$, where $M$ is some fixed maximal matching; (\textit{Magic test})}
 \algoline{\tab if $e \in M$ then $S:=S+1$;}
 \algoline{done}
-\algoline{\textbf{output} $m/t \cdot S$;}
+\algoline{\textbf{output} $\dfrac{n\cdot S}{t}$;}
+	\label{main}
 \end{algorithm}
 
 \Algospace{7} %nombre de ligne dans l'algorithme
@@ -134,31 +153,79 @@ Computing the size of a maximal matching in a constant degree (bounded by $d$) g
 \begin{definition}
 We say that an algorithm is a constant time approximation scheme if for any $\varepsilon >0$:
 \begin{itemize}
-\item it runs in constant time (independent of the size of the inut, but may depend on $\varepsilon$ and $d$);
+\item it runs in constant time (independent of the size of the input, but may depend on $\varepsilon$ and $d$);
 \item with probability $\geq 2/3$, we want that $|\texttt{output} - \texttt{goal}| \leq \varepsilon \cdot \texttt{goal}$.
 \end{itemize}
 \end{definition}
 
 In particular, the last condition in our case turns out to be for some $t = \Theta_{\varepsilon,d}(1)$ that $|\texttt{output} - |M|| \leq \varepsilon \cdot |M|$ with probability $\geq 2/3$.
 
+\begin{theorem}
+The algorithm (\ref{main}) is a $n \varepsilon$ approximation to $|M|$.
+\end{theorem}
+\begin{proof}
+First let us calculate the expected output:
+\[
+\mathbb{E}[output] = \mathbb{E}\left [\dfrac{S \cdot n}{\frac{cd^2}{\varepsilon^2}} \right ]
+=\dfrac{n\varepsilon^2}{cd^2}\mathbb{E}[S]
+\]
+\begin{align*}
+  \mathbb{E}[S]&= \sum_{i=1}^t \mathbb{E}[1_{e_i~is~matched}]\\
+   &= \frac{cd^2}{\varepsilon^2} \mathbb{P}[e~is~matched] \\
+   &=\frac{cd^2}{\varepsilon^2} \cdot |M|
+\end{align*}
+
+So finally, the output size is expected to be the matching size.
+
+Now let us show that the output is with high probability close to the matching size.
+We want to compute:
+\[
+\mathbb{P}[output - |M| > n\varepsilon]
+\]
+\begin{align*}
+\mathbb{P}[output - |M| > n\varepsilon] &= \mathbb{P}[output - \mathbb{E}[output] > n\varepsilon]\\
+	&=\mathbb{P}[\dfrac{n\varepsilon^2}{cd^2}S - \dfrac{n\varepsilon^2}{cd^2}\mathbb{E}[S] 
+> n\varepsilon]\\
+	&=\mathbb{P}[S - \mathbb{E}[S] >  \frac{cd^2}{\varepsilon}]
+\end{align*}
+
+
 \begin{lemma}[Hoeffding bound] If $Y_1,\dots,Y_t$ are independant random variables such that for any $i \in\{1,\dots,t\}$, we have $a_i \leq Y_i \leq b_i$ then $\mathrm{Pr}\{|Z - \mathbb{E}(Z)| \geq a \} \leq 2 \mathrm{exp}\Big(-2a^2/\big(\sum_{i=1}^t(a_i-b_i)^2\big)\Big)$ where we set $Z = Y_1+\dots+Y_t$.
 \end{lemma}
 
-In our case, we opt for $Y_i=1$ iff the $i$-th picked edge is in $M$, and $Y_i = 0$ otherwise. We fix the notation $S = \sum_{i=1}^t Y_i$. 
+In our case, we opt for $Y_i=1$ iff the $i$-th picked edge is in $M$, 
+and $Y_i = 0$ otherwise. (Basically, with our previous notations, $Y_i=1_{e_i~is~matched}$).
+We fix the notation $S = \sum_{i=1}^t Y_i$. 
 
-Thus, for any $1 \leq i \leq t$, we get the bound $0 \leq Y_i \leq 1$. Since $\mathbb{E}(Y_i) = |M|/m$, it follows $\mathbb{E}(S) = t\cdot|M|/m$ and hence $\mathbb{E}(\texttt{output}) = (m/t)\cdot (t\cdot|M|/m) = |M|$. We deduce from the Hoeffding bound that
+Thus, for any $1 \leq i \leq t$, we get the bound $0 \leq Y_i \leq 1$.
+\begin{align*}
+\mathbb{P}[output - |M| > n\varepsilon] &= \mathbb{P}[S - \mathbb{E}[S] >  \frac{cd^2}{\varepsilon}]\\
+	&\leq 2 \mathrm{exp}\Big(-2 \frac{c^2d^4}{\varepsilon^2}\frac{1}{t}\Big) \\
+	&\leq 2 \mathrm{exp}(-2 cd^2) \leq 2 \mathrm{exp}(-2 d^2)\\
+\end{align*}
+the one before last inequality coming from the fact that $t = \Theta(d^2/\varepsilon^2) = cd^2/\varepsilon^2$.\\
+So finally, when $d \geq 1$, $\mathbb{P}[output - |M| > n\varepsilon]<1/3$
 
-\[
-\begin{split}
-\mathrm{Pr}\{|(m/t)\cdot|M|- |M|| \geq a \} & \leq 2 \mathrm{exp}\Big(-2\varepsilon^2|M|^2/\big(t\cdot m^2/t^2\big)\Big) \\
-									& \leq 2 \mathrm{exp}\Big(-2\varepsilon^2t|M|^2/m^2\Big)
-\end{split}
-\]
-As for all maximal matching $M$ we have $|M| \geq m/(2d-1)$ \textbf{[draw a picture]}, we get in the end the bound
-\[
-\mathrm{Pr}\{|(m/t)\cdot|M|- |M|| \geq a \} \leq 2 \mathrm{exp}\Big(-2\varepsilon^2t/(2d-1)\Big) \leq 1/3,
-\]
-the last inequality coming from the fact that $t = \Theta(d^2/\varepsilon^2)$.
+%\[
+%\begin{split}
+%\mathrm{Pr}\{|(m/t)\cdot|M|- |M|| \geq a \} & \leq 2 \mathrm{exp}\Big(-2\varepsilon^2|M|^2/\big(t\cdot m^2/t^2\big)\Big) \\
+%									& \leq 2 \mathrm{exp}\Big(-2\varepsilon^2t|M|^2/m^2\Big)
+%\end{split}
+%\]
+%As for all maximal matching $M$ we have $|M| \geq m/(2d-1)$ \textbf{[draw a picture]}, we get in the end the bound
+%\[
+%\mathrm{Pr}\{|(m/t)\cdot|M|- |M|| \geq a \} \leq 2 \mathrm{exp}\Big(-2\varepsilon^2t/(2d-1)\Big) \leq 1/3,
+%\]
+%the last inequality coming from the fact that $t = \Theta(d^2/\varepsilon^2)$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+%Remarque : j'ai changé ce que tu avais fait parce que j'avais l'impression que les calculs étaient
+%faux parce que tu ne prennais pas en compte la variable $a$.
+
+%je me suis peut être trompé dans ce cas n'hésite pas à corriger ce que j'ai écrit.
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+\end{proof}
 
 \section{The greedy algorithm : \emph{Magic test}}
 
@@ -212,3 +279,4 @@ For any $\varepsilon >0$, our algorithm outputs a value in $O(e^{2d-2},d^2/\vare
 %    Insert the bibliography data here.
 
 \end{document}
+
