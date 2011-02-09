@@ -1,0 +1,213 @@
+\documentclass{jams-l}
+
+%     If you need symbols beyond the basic set, uncomment this command.
+\usepackage{amssymb}
+
+%     If your article includes graphics, uncomment this command.
+\usepackage{graphicx}
+
+%     If the article includes commutative diagrams, ...
+%\usepackage[cmtip,all]{xy}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{xca}[theorem]{Exercise}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\numberwithin{equation}{section}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcount{\vari}
+\newcount{\lin} %pour les put
+\newcounter{nbr} %pour l'affichage
+\newcounter{prog} %num prog
+\setcounter{prog}{0}
+
+\newenvironment{algorithm}[1]{
+\setlength{\unitlength}{1mm}
+\begin{picture}(0,0)(0,2)
+\lin=0
+\setcounter{nbr}{0}
+\Algotitle{#1}
+}
+{
+\Algoend
+\end{picture}
+}
+
+\newcommand{\Algotitle}[1]{
+\addtocounter{prog}{1}
+\put(2,-3.5){\textbf{Algorithm \theprog.} #1}
+\linethickness{0.8pt}
+\put(0,\lin){\line(1,0){130}}
+\linethickness{0.3pt}
+\advance \lin by -5
+\put(0,\lin){\line(1,0){130}}
+\advance \lin by -2
+}
+
+\newcommand{\algoline}[1]{
+\advance \lin by -4
+\addtocounter{nbr}{1}
+\ifnum \thenbr<10 \vari=4 \else \vari=2 \fi
+\put(\vari,\lin){\thenbr}\put(10,\lin){#1}
+}
+
+\newcommand{\Algoend}{
+\linethickness{0.3pt}
+\advance \lin by -4
+\put(0,\lin){\line(1,0){130}}
+}
+
+\newcommand{\Algospace}[1]{
+\lin=#1
+\advance \lin by 3
+\multiply \lin by 12
+\begin{picture}(0,\lin)(0,0)
+\end{picture}
+}
+
+\newcommand{\tab}{$~$}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{document}
+
+% \title[short text for running head]{full title}
+\title{\textbf{Constant time ($1 \pm \varepsilon$)-approximation}}
+
+%    Only \author and \address are required; other information is
+%    optional.  Remove any unused author tags.
+
+%    author one information
+% \author[short version for running head]{name for top of paper}
+\author{Guillaume Aupy}
+\address{}
+\curraddr{}
+\email{}
+\thanks{}
+
+%    author two information
+\author{R\'{e}my Tuy\'{e}ras}
+\address{}
+\curraddr{}
+\email{}
+\thanks{}
+
+
+\date{}
+
+\dedicatory{}
+
+%    Abstract is required.
+\begin{abstract}
+\textbf{[to do]}
+\end{abstract}
+
+\maketitle
+
+\section{A constant time Algorithm}
+
+\textbf{[write a concise presentation; introduce the notations like $G$, etc.]}
+
+Computing the size of a maximal matching in a constant degree (bounded by $d$) graph.
+
+\begin{algorithm}{Main algorithm}
+\algoline{$S:=0$; $t:=\Theta(d^2/\varepsilon^2)$;}
+\algoline{\textbf{for} $i=1$ \textbf{to} $t$ \textbf{do}}
+\algoline{\tab Pick uniformly at random an edge $e$ in $G$;}
+\algoline{\tab test if $e \in M$, where $M$ is some fixed maximal matching; (\textit{Magic test})}
+\algoline{\tab if $e \in M$ then $S:=S+1$;}
+\algoline{done}
+\algoline{\textbf{output} $m/t \cdot S$;}
+\end{algorithm}
+
+\Algospace{7} %nombre de ligne dans l'algorithme
+
+\begin{definition}
+We say that an algorithm is a constant time approximation scheme if for any $\varepsilon >0$:
+\begin{itemize}
+\item it runs in constant time (independent of the size of the inut, but may depend on $\varepsilon$ and $d$);
+\item with probability $\geq 2/3$, we want that $|\texttt{output} - \texttt{goal}| \leq \varepsilon \cdot \texttt{goal}$.
+\end{itemize}
+\end{definition}
+
+In particular, the last condition in our case turns out to be for some $t = \Theta_{\varepsilon,d}(1)$ that $|\texttt{output} - |M|| \leq \varepsilon \cdot |M|$ with probability $\geq 2/3$.
+
+\begin{lemma}[Hoeffding bound] If $Y_1,\dots,Y_t$ are independant random variables such that for any $i \in\{1,\dots,t\}$, we have $a_i \leq Y_i \leq b_i$ then $\mathrm{Pr}\{|Z - \mathbb{E}(Z)| \geq a \} \leq 2 \mathrm{exp}\Big(-2a^2/\big(\sum_{i=1}^t(a_i-b_i)^2\big)\Big)$ where we set $Z = Y_1+\dots+Y_t$.
+\end{lemma}
+
+In our case, we opt for $Y_i=1$ iff the $i$-th picked edge is in $M$, and $Y_i = 0$ otherwise. We fix the notation $S = \sum_{i=1}^t Y_i$. 
+
+Thus, for any $1 \leq i \leq t$, we get the bound $0 \leq Y_i \leq 1$. Since $\mathbb{E}(Y_i) = |M|/m$, it follows $\mathbb{E}(S) = t\cdot|M|/m$ and hence $\mathbb{E}(\texttt{output}) = (m/t)\cdot (t\cdot|M|/m) = |M|$. We deduce from the Hoeffding bound that
+
+\[
+\begin{split}
+\mathrm{Pr}\{|(m/t)\cdot|M|- |M|| \geq a \} & \leq 2 \mathrm{exp}\Big(-2\varepsilon^2|M|^2/\big(t\cdot m^2/t^2\big)\Big) \\
+									& \leq 2 \mathrm{exp}\Big(-2\varepsilon^2t|M|^2/m^2\Big)
+\end{split}
+\]
+As for all maximal matching $M$ we have $|M| \geq m/(2d-1)$ \textbf{[draw a picture]}, we get in the end the bound
+\[
+\mathrm{Pr}\{|(m/t)\cdot|M|- |M|| \geq a \} \leq 2 \mathrm{exp}\Big(-2\varepsilon^2t/(2d-1)\Big) \leq 1/3,
+\]
+the last inequality coming from the fact that $t = \Theta(d^2/\varepsilon^2)$.
+
+\section{The greedy algorithm : \emph{Magic test}}
+
+We will simulate the greedy algorithm that considers the edges in random order and places each edge in the matching if it is ot incident to any edge that have already placed in the matching. We consider $M = M(r)$, the maximal matching computed by the greedy algorithm that considers the edges in order of increasing $r_e$ \textbf{[not really clear, introduce \texttt{Greedy}]}
+
+\begin{algorithm}{\texttt{Magic\_test}}
+\algoline{\textbf{if} $r_e = \bot$ \textbf{then} pick $r_e$ uniformly at random in $[0,1]$;}
+\algoline{\textbf{for} any edge $e'$ incident to $e$ \textbf{do}}
+\algoline{\tab \textbf{if} $r_{e'} = \bot$ \textbf{then} pick $r_{e'}$ uniformly at random in $[0,1]$;;}
+\algoline{\tab \textbf{if} $r_{e'} < r_{e}$ \textbf{then}}
+\algoline{\tab \tab \textbf{if} \texttt{Magic\_test}($e'$)=\texttt{true} \textbf{then} \textbf{return} \texttt{false};}
+\algoline{\textbf{return} \texttt{true};}
+\end{algorithm}
+
+\Algospace{6} %nombre de ligne dans l'algorithme
+
+The correctness of \texttt{Magic\_test} is provided by the well-found order on the quantities $r_e$ \textbf{[to precise]}.
+
+\begin{lemma}
+For any $e \in G$, the algorithm \texttt{Magic\_test}$(e)$ answers in $O(m)$-time at most whether $e \in M(r)$ or not.
+\end{lemma}
+\begin{proof}
+\textbf{[make the proof better, What is \texttt{Greedy}?]}. We have $e \in M(r)$ iff all incident edges $e'$ considered before $e$ by \texttt{Greedy}$(r)$ do not belong to $M(r)$. Thus by induction over the considered edges, the answer is correct.
+\end{proof}
+
+Let $Q(x)$ denote an upper bound on the expected number of queries to magictest to decide whether an edge $e \in M(r)$ or not given that $r_e = x$. Let $k$ be the number of undecided incident edge toe, let them be $e_1,\dots,e_k$, for $k \leq 2d-1$.
+\[
+Q(x) \leq 1 + (2d-2) \int_0^x Q(y)\,dy
+\]
+Let $H(x)$ be the function such that $H(x) = 1 +(2d-2) \int_0^x H(y)\,dy$. Clearly, for any $x$ we have : $H(x) \geq Q(x)$. Since $Q(0) = H(0) = 1$, it follows from the defintion $H$  that
+\[
+\frac{d}{dx}\,\Big(\mathrm{ln}\,H(x)\Big) = \frac{H'(x)}{H(x)} = 2d-2
+\]
+Consequently, by integrating, it results that $\mathrm{ln}\,H(x) = \mathrm{ln}\,H(0)+ (2d-2)x = (2d-2)x$. Thus, we obtain $H(x) = \mathrm{exp}((2d-2)x)$ and finally $H(1) = e^{2d-2}$. This leads to the following lemma.
+
+\begin{lemma}
+The expected number of recursive calls in \texttt{Magic\_test} is $\leq H(1) = e^{2d-2} = \Theta(1)$
+\end{lemma}
+
+We conclude that \textbf{[to explain]}
+
+\begin{theorem}
+For any $\varepsilon >0$, our algorithm outputs a value in $O(e^{2d-2},d^2/\varepsilon^2)$ expected time such that $\mathrm{Pr}\{ |\texttt{output} - |M(r)|| \leq \varepsilon \cdot |M(r)|\} \leq 2/3$.
+\end{theorem}
+
+
+%    Bibliographies can be prepared with BibTeX using amsplain,
+%    amsalpha, or (for "historical" overviews) natbib style.
+\bibliographystyle{amsplain}
+%    Insert the bibliography data here.
+
+\end{document}
