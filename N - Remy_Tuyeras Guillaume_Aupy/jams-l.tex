@@ -142,15 +142,15 @@ of a graph $G$ with the property that if any edge not in $M$ is added to $M$, th
 Do not mistake maximal matchings with \emph{maximum matchings}, which are matchings containing the largest possible number of edges.
 \end{remark}
 
-\tikzstyle{vertex}=[circle,fill=black!25,minimum size=20pt,inner sep=0pt]
+\tikzstyle{vertex}=[circle,fill=black!25,minimum size=15pt,inner sep=0pt]
 \tikzstyle{selected vertex} = [vertex, fill=red!24]
 \tikzstyle{edge} = [draw,thick,-]
 \tikzstyle{weight} = [font=\small]
-\tikzstyle{selected edge} = [draw,line width=5pt,-,red!50]
+\tikzstyle{selected edge} = [draw,line width=3pt,-,red!50]
 
 
 \begin{figure}[h]
-\begin{tikzpicture}[scale=1.8]
+\begin{tikzpicture}[scale=0.8]
     \foreach \pos/\name in {{(0,2)/a}, {(2,1)/b}, {(4,1)/c},
                             {(0,0)/d}, {(3,0)/e}, {(2,-1)/f}, {(4,-1)/g}}
         \node[vertex] (\name) at \pos {$\name$};
