@@ -1,0 +1,107 @@
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage{textcomp}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[letterpaper]{geometry}
+\geometry{verbose,tmargin=4cm,bmargin=3cm,lmargin=3cm,rmargin=3cm}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\rhead{The Uses of Randomness in computer science}
+\lhead{D. Chalu - C. Paperman}
+\theoremstyle{plain}
+
+\theoremstyle{plain}
+\newtheorem{thm}{Theorem}
+  
+\theoremstyle{plain}
+  \newtheorem{algo}[thm]{Algorithm}
+  
+\theoremstyle{plain}
+  \newtheorem{pb}[thm]{Problem}
+
+\usepackage{babel}
+\addto\extrasfrench{\providecommand{\og}{\leavevmode\flqq~}\providecommand{\fg}{\ifdim\lastskip>\z@\unskip\fi~\frqq}}
+
+
+\begin{document}
+\part*{A $\theta\left(\log \log n\right)$-bits randomized counter that counts up to $n$}
+We are going to show a randomized algorithm that counts, with high probability, the number of elements in some set, using exponentially less memory than a deterministic one.\\
+First of all, let us formalize the problem we're interested in.
+
+\begin{pb}
+We are given a network and a node of this network. We want to output the number of messages crossing the network through this node during some amount of time.
+\end{pb}
+
+The integer $n$ will denote the number of messages crossing the network through the node.\\Any approach should follow the following scheme : 
+
+
+\begin{enumerate}
+	\item For all messages crossing the node, call some function Inc. 
+	\item Output the value computed by Inc.
+\end{enumerate}
+
+There, Inc stands for some counter that we will increment following some rule each time a message crosses the node. We want the last value computed by Inc to be equal to $n$.
+
+\section{A deterministic solution}
+A very intuitive solution is to implement the following algorithm.
+\begin{algo}
+\begin{enumerate}
+  \item $Inc \leftarrow 0$;
+	\item For each message crossing the node $Inc\leftarrow Inc + 1$
+	\item Output $Inc$.
+\end{enumerate}
+\end{algo}
+
+Since it increments by 1 a variable $Inc$ each time a message crosses the node, this algorithm outputs $n$ and meets the specification. In addition, one can note that it has a time complexity $\theta\left(n\right)$ and a space complexity $\theta\left(\log n\right)$-bits since $Inc$ take values from $0$ to $n$. (Recall that the number of bits needed to represent the positive integer $n$ in a basis $b > 1$ is $\theta\left(\log n\right)$.)
+
+
+\section{A randomized approach}
+
+\subsection{Presentation and correctness of the algorithm}
+Let's have a look at the following algorithm.
+\begin{algo}
+\emph{Randomized Set Counter}
+\begin{enumerate}
+	\item $Inc \leftarrow 0$
+	\item For each message crossing the node 
+\begin{itemize}
+	\item flip a coin of parameter $\frac{1}{2^{Inc}}$. If it outputs head, $Inc \leftarrow Inc + 1$
+\end{itemize}
+	\item Output $2^{Inc}$.
+	\end{enumerate} 
+\end{algo}
+
+RSC$\left(n\right)$ will denote the random variable corresponding to the output of the previous algorithm.
+\begin{thm} (RSC meets the specification)
+\[\mathbb{E}\left(RSC(n)\right) = n+1\]
+\end{thm}
+
+\begin{proof}
+We are going to prove the theorem by induction over $n$.\\
+The theorem is true for $n = 0$, the algorithm outputs $2^0$ which is equal to $1 = 0 + 1$.\\
+Let $X_i$ denote the random variable containing the value of $Inc$ after $i$ steps of the "For" loop in RSC, $p_{ij} = \mathbb{P}\left(X_i = j\right)$ and $h_i = \mathbb{E}\left(2^{X_i}\right) = \sum_{j=1}^{n}p_{ij}2^j$. Because of \[p_{i+1,j} = \mathbb{P}\left(X_{i+1} = j\right)=\mathbb{P}\left(X_{i-1} = j-1\right)*\frac{1}{2^{j-1}}+ \mathbb{P}\left(X_{i-1} = j\right)*\left(1-\frac{1}{1-2^j}\right)\] we have : \[h_{i+1} = \sum_{j=1}^{ n}\frac{p_{i(j-1)}}{2^{j-1}}2^j + \sum_{j=1}^{ n}p_{ij}\left(1-\frac{1}{2^j}\right)2^j = 2 + h_i - 1 = h_i + 1\] Thus, $h_{n-1} = n  \implies h_n = n + 1$ which achieves the proof.
+\end{proof}
+
+
+
+Note that the time complexity of this algorithm is still $\theta\left(n\right)$ but since $Inc$ takes values from $\left\{1,\cdots \log(n)\right\}$, the space complexity is now $\theta{\left(\log \log n\right)}$.
+
+
+\subsection{Bounding the error of the algorithm}
+That is not satisfying enough : how far can RSC$(n)$ be away from $n$ ?\\A direct application of Markov's inequality leads us to : 
+
+\begin{thm}
+$\mathbb{P}\left(RSC(n) \geq 2(n+1)\right) \leq \frac{1}{2}$
+\end{thm}
+
+Using Chebyshev's inequality, since, with the notations introduced during the proof above, \\$Var\left(X_k\right) = \frac{k(k+1)}{2}$ and $\mathbb{E}\left(RSC(k)\right) = k + 1$ for every $k \in \mathbb{N}$, we have : \[\forall \epsilon > 0, \mathbb{P}\left(\left|RSC(n) - (n+1)\right|\geq \epsilon\left(n + 1\right)\right) \leq \frac{1}{2\epsilon^2}\]Unfortunately, this bound is not precise enough.\\To increase the precision of the algorithm, we will modify it a little bit. We will run it independently $m$ times where, $m$ is a constant, and we will output the mean of the $m$ outputs.\\ By linearity of the expectation, we still output $n + 1$ on expectation.\\Since the executions are independent, if $RSC_i(n)$ denotes the output of the $i^{th}$ execution of $RSC$, for $1\leq i < j\leq m, Var(RSC_i(n) + RSC_j(n)) = Var(RSC_i(n)) + Var(RSC_j(n))$ and, subsequently, if $RSC(n)$ still denotes the output of the modified algorithm, \[Var(RSC(n)) = \frac{1}{m^2} Var\left(\sum_{i=1}^{m}RSC_i(n)\right) = \frac{1}{m^2}\sum_{i=1}^{m}{Var\left(RSC_i(n)\right)} = \frac{1}{m} \frac{n\left(n+1\right)}{2}\]
+With $m = \frac{1}{\epsilon^2}$, we get 
+\begin{thm}
+If $RSC(n)$ denotes the random variable corresponding to the output of the modified algorithm,
+\[\mathbb{P}\left(\left|RSC(n)-(n + 1)\right|\geq \epsilon (n + 1)\right) \leq \frac{1}{4}\]
+\end{thm}
+Note that the time complexity is still $\theta\left(n\right)$ and the space complexity is still $\theta\left(\log \log n\right)$ : we just multiplied the running time and the space needed in memory by $m$.
+\end{document}
