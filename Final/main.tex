@@ -1,0 +1,165 @@
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage{textcomp}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage[letterpaper]{geometry}
+\geometry{verbose,tmargin=4cm,bmargin=3cm,lmargin=3cm,rmargin=3cm}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\usepackage{algorithm,algorithmic}
+\usepackage{tikz}
+\usepackage{verbatim}
+\usetikzlibrary{arrows,shapes}
+\usetikzlibrary{decorations.pathmorphing,trees}
+
+\usepackage{pst-all}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{algo}{Algorithm}
+\newtheorem{problem}{Problem}
+\newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{claim}{Claim}
+\newtheorem{prop}{Proposition}
+\newtheorem{corollary}{Corolary}
+\newtheorem{conj}{Conjecture}
+
+\theoremstyle{remark}
+\newtheorem*{example}{Example}
+\newtheorem*{remark}{Remark}
+
+\floatname{algorithm}{Algorithme}
+
+
+\newsavebox{\fmbox}
+\newenvironment{encadre}[1]
+{
+\begin{lrbox}{\fmbox}
+\begin{minipage}{\textwidth-3em}
+\vspace{0.3\baselineskip}\setlength{\parskip}{0.5em}
+}
+{
+\vspace{\baselineskip}
+\end{minipage}\end{lrbox}
+\begin{center}
+\fbox{\hspace{1em}\usebox{\fmbox}\hspace{1em}}
+\end{center}
+\vspace{0.5\baselineskip}
+}
+
+\numberwithin{equation}{section}
+
+%%%%%%
+\newcount{\vari}
+\newcount{\lin} %pour les put
+\newcounter{nbr} %pour l'affichage
+\newcounter{prog} %num prog
+\setcounter{prog}{0}
+
+\newenvironment{Algo}[1]{
+\setlength{\unitlength}{1mm}
+\begin{picture}(0,0)(0,2)
+\lin=0
+\setcounter{nbr}{0}
+\Algotitle{#1}
+}
+{
+\Algoend
+\end{picture}
+}
+\newcommand{\Algotitle}[1]{
+\addtocounter{prog}{1}
+\put(2,-3.5){\textbf{Algorithm \theprog.} #1}
+\linethickness{0.8pt}
+\put(0,\lin){\line(1,0){130}}
+\linethickness{0.3pt}
+\advance \lin by -5
+\put(0,\lin){\line(1,0){130}}
+\advance \lin by -2
+}
+
+\newcommand{\algoline}[1]{
+\advance \lin by -4
+\addtocounter{nbr}{1}
+\ifnum \thenbr<10 \vari=4 \else \vari=2 \fi
+\put(\vari,\lin){\thenbr}\put(10,\lin){#1}
+}
+
+\newcommand{\Algoend}{
+\linethickness{0.3pt}
+\advance \lin by -4
+\put(0,\lin){\line(1,0){130}}
+}
+
+\newcommand{\Algospace}[1]{
+\lin=#1
+\advance \lin by 3
+\multiply \lin by 12
+\begin{picture}(0,\lin)(0,0)
+\end{picture}
+}
+
+\newcommand{\tab}{$~~~$}
+%%%%%%
+
+
+
+\newcommand{\NP}{\mathrm{NP}}
+\newcommand{\PCP}{\mathrm{PCP}}
+\newcommand{\prob}[1]{\mathbb{P}\left[#1\right]}
+\newcommand{\rg}{\mathrm{rg}}
+\newcommand{\poly}{\mathrm{poly}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\rhead{Randomness in CS}
+%\lhead{D. Chalu - C. Paperman}
+\title{The Uses of Randomness in computer science}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+\input{1.tex}
+\newpage
+\input{2.tex}
+\newpage
+\input{3.tex}
+\newpage
+\section{Proving optimality of randomized algorithms: Yao's principle}
+\input{4b-c.tex}
+\newpage
+\input{4d.tex}
+\newpage
+\section{Randomized rounding}
+\input{5a.tex}
+\newpage
+\section{Sample and Guess}
+\input{6b-c.tex}
+\newpage
+\input{6e.tex}
+\newpage
+\input{6f.tex}
+\newpage
+\section{Exhaustive guessing 1}
+\section{Random Walks 1}
+
+\appendix
+\input{appendix1.tex}
+
+\bibliographystyle{plain}
+\bibliography{bib/biblio}
+
+
+\end{document}
