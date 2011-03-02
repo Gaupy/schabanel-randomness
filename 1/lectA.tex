@@ -1,0 +1,157 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8x]{inputenc}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+
+\newtheorem{mydef}{Definition}
+\newtheorem{myth}{Theorem}
+\newtheorem{mylm}{Lemma}
+\newtheorem{myclm}{Claim}
+\newtheorem{myprop}{Proposition}
+%opening
+\title{Randomized Algorithm : Lecture 1A}
+\author{Amit Kumar Dhar and Supartha Podder}
+
+\begin{document}
+
+\maketitle
+
+\section*{Problem : Min-Cut}
+We consider here an undirected graph with no weight on its edges. Let us call the graph $G(V,E)$. A cut
+in the graph is a partition of the vertices into two non empty sets $S$ and $\overline{S}$. We define 
+the weight of a cut as the number of edges that pass between any vertex $u\in S$ and another vertex $v \in \overline{S}$.
+The problem of finding a min-cut is partitioning the vertices of the graph in two sets such that the
+number of edges passing between the two partitions is minimum. The problem can be formally stated as follows:
+\begin{center}
+\textbf{Input} : An unweighted undirected graph $G(V,E)$.\\
+\textbf{Output} : A cut $(S,\overline{S})$ with $S \subseteq V$ of minimumm size. 
+\end{center}
+
+\noindent\textbf{Deterministic Algorithm} : The deterministic algorithm for finding a mincut relies
+on the invocation of the maximum flow algorithm a polynomial number of times. The best known time
+bound for such an algorithm is $O(mnlog(n^{2}/m))$.
+
+
+\noindent\textbf{Randomized Algorithm} : Let us define a multigraph to be a graph with possibly multiple
+parallel edges between vertices. Given an edge $(x,y)$ in a multigraph $G=(V,E)$, contraction of
+edge $(x,y)$ corresponds to replacing the vertices $x$ and $y$ by another vertex $z$, and for each 
+$v\notin \{x,y\}$ replacing any edge $(x,v)$ or $(y,v)$ by the edge $(z,v)$; keeping the remaining
+graph same. This would create some multiple edges.\\
+
+\begin{mylm}
+ Let $G^{\prime}$ be the graph obtained by contracting an edge in $G$ then the size of the mincut of
+$G^{\prime}$ is at least equal to the size of the mincut of $G$. The equality holds if the edge 
+contracted does not belong to one of the mincut of G.
+\end{mylm}
+\begin{proof}
+ Clearly, by definition, by contracting an edge, we loose at most the edges that are parallel to it. 
+Thus, if the edge contracted were in the min-cut in $G$, the value of the min-cut in $G^{\prime}$ is strictly
+greater than or equal to the min-cut in $G$ as it changes the partition of the vertices. In other cases, 
+contracting the edge would have no effect on the min-cut as the edge contracted is within one of the 
+component of the mincut. Thus, no edge in the cut is affected while contracting the edge.
+\end{proof}
+
+As a consequence, we have the following lemma,\\
+\begin{mylm}
+ Any cut of $G^{\prime}$ is a cut of $G$.
+\end{mylm}
+Now, we can specify the algorithm, which would contract a randomly picked edges of a graph, and 
+then show that the algorithm succeeds to produce the mincut of a graph with high probability.
+
+\noindent \textbf{Algorithm:}
+
+\indent \hspace{5pt} As long as $|V| \leq 3$\\
+\indent \indent \hspace{5pt} Draw a random edge $e$ in $G$.\\
+\indent \indent \hspace{5pt} Contract e.\\
+\indent \hspace{5pt} Output the cut. \\
+
+\noindent \textbf{Analysis of the Algorithm:}\\
+As long as we don't contract an edge from the min-cut, the output will be correct. Assuming the size
+of the min-cut is $k$ and the number of edges is $m$.\\
+\begin{equation*}
+  \begin{array}{ll}
+	 Pr\{\mbox{Algorithm fails on the first step}\}& = \dfrac{\mbox{Size of min-cut}}{\mbox{edges in graph}}\\
+	 & = \dfrac{k}{m}\\
+  \end{array}
+\end{equation*}
+
+\begin{mylm}
+ In an $n$-vertex multigraph with min-cut value $k$, no vertex has degree smaller than $k$. Further 
+the total number of edges in the graph satisfies $m\geq nk/2$.
+\end{mylm}
+\begin{proof}
+ By contradiction let us suppose that there is a vertex $v$ with degree less than $k$. Then the cut 
+$(\{v\},V\backslash \{v\})$ will be less than $k$, which contradicts the minimality of min-cut.
+\end{proof}
+
+\noindent Thus, we have that, Pr\{Algorithm fails on the first step\} = $\dfrac{2}{n}$
+
+\begin{myth}
+ The probability that the algorithm outputs a proper min-cut is at least $2/n^{2}$.
+\end{myth}
+\begin{proof}
+ We consider the $i^{th}$ step of the algorithm. We say the algorithm succeeds in a step if it contracts
+as edge which is not part of a min-cut. We have,\\
+Pr\{success at the $i^{th}$ contraction $\arrowvert$ success at all the previous steps\}\\
+\begin{equation*}
+ \begin{array}{ll}
+  &= 1 - Pr\{\mbox{failure at $i^{th}$ contraction $\arrowvert$ no failure before $i^{th}$ step}\}\\
+  &\geq 1- \dfrac{2}{n + 1 -i} = \dfrac{n-1-i}{n+1-i}\\ 
+ \end{array}
+\end{equation*}
+
+\noindent We know, Pr\{min-cut as output\} $\geq$ Pr\{ $\forall step$ i=1 to n-2, there was success\}
+
+\noindent Let, $A_{t}$ denote the event that step $t$ is a success.
+
+\noindent Therefore,
+\begin{equation*}
+ \begin{array}{ll}
+    Pr\{\mbox{min-cut as output}\}&\geq Pr\{A_{1} \wedge A_{2} \wedge \cdots \wedge A_{n-2}\}\\
+    &= Pr\{A_{n-2}\arrowvert A_{1} \wedge \cdots \wedge A_{n-3}\}.Pr\{A_{n-3}\arrowvert A_{1} \wedge\cdots \wedge A_{n-4}\}\\
+    &  \cdots Pr\{A_{2}\arrowvert A_{1}\} . Pr\{A_{1}\}\\
+  \end{array}
+\end{equation*}
+
+\noindent(For conditional probability, we have
+Pr\{$A\arrowvert B$\}=$\dfrac{Pr\{A\wedge B\}}{Pr\{B\}}$)
+
+\begin{equation*}
+ \begin{array}{ll}
+    Pr\{\mbox{min-cut as output}\}&\geq \displaystyle\prod_{i=1}^{n-2} \dfrac{(n-1-i)}{(n+1-i)}\\
+    &= \dfrac{2}{n(n-1)} \geq \dfrac{2}{n^{2}}\\
+  \end{array}
+\end{equation*}
+
+\end{proof}
+
+We would like to increase the probability of the algorithm of outputting a min-cut to $1- \dfrac{1}{n^{c}}$
+for any constant $c > 0$. For this we run the algorithm for k times and output the minimum of the k cuts
+produced by the algorithm. We select k depending on the c. To calculate the value of k, we note that,\\
+
+Pr\{output is not a min-cut in all the k runs\} $\leq \big(1-\dfrac{2}{n^{2}}\big)^k$\\
+Thus, Pr\{output is a min-cut after k runs\} $\geq 1-\big(1- \dfrac{2}{n^{2}}\big)^k$\\
+
+Clearly, to make this probability to the desired value we need to choose the value of $k$ such that:
+$\big(1- \dfrac{2}{n^{2}}\big)^k = \dfrac{1}{n^{c}}$\\
+From, $\big(1- \dfrac{2}{n^{2}}\big)^k$ we have,\\
+\begin{equation*}
+ exp(k log(1-\dfrac{2}{n^{2}})) \leq exp(-\dfrac{2k}{n^{2}})
+\end{equation*}
+If we choose $k=\dfrac{c}{2}n^{2}\log n$ then we get the required probability.
+
+\begin{myth}
+ The algorithm runs in time $O(n^{4}\log n)$ on any n-vertex multigraph.
+\end{myth}
+
+\begin{proof}
+ This may seem surprising that the algorithm doesn't depend on the number of edges in the graph, as 
+in a multigraph the number of edges are not bounded by ${n}\choose{2}$. But, each group of multiedge
+can be replaced by weight on a single edge with weights specifying the multiplicity of the edge. Thus,
+the number of edges are bounded by ${n}\choose{2}$. And thus the algorithm may be implemented in a way
+to terminate in $O(n^{2})$. Repeating the algorithm $k$ times takes time $O(n^{2}k)$, which according
+to the value of $k$ is $O(n^{4}\log n)$
+\end{proof}
+
+\end{document}

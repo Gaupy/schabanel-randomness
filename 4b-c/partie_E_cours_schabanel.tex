@@ -1,0 +1,102 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[francais]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{geometry}
+\usepackage{amsthm} 
+\usepackage{makeidx} 
+\usepackage{amsthm} 
+\usepackage{amssymb} 
+\usepackage{color}
+
+
+\geometry{scale=0.8, nohead}
+
+
+\begin{document}
+\pagestyle{empty}
+
+\begin{center} \LARGE \sc Part E \end{center}
+
+\section*{Yao's principle :}
+
+The cost of the best randomized algorithm on its worst instance is at least equal to the expected of the best deterministic algorithm for the worst distribution of instance.
+
+\subsection*{Proof :}
+
+Let be q a distribution over the instances of size n. $\mathbb{P}(\{\textbf{instance is }I_{j}\})=q_{j}$ and $\displaystyle{\sum_{j=0}^{2^n-1} q_{j} = 1}$
+Let be $A_{i}$ a set of deterministic algorithms. We denote by $C_{i,j}= \textbf{cost}(A_{i},I_{j})$ the cost of algorithm $A_{i}$ on the instance $I_{j}$.
+
+Let us calculate the cost of the best deterministic algorithm for the worst distribution of instance :
+$$\displaystyle{A = \max_{q} \min_{i} \mathbb{E}_{j\in q} (C_{i,j}) = \max_{q} \min_{i} \sum_{j \in q} q_{j}C_{i,j} = L_{i}.q}$$
+ 
+A randomized algorithm is a distribution over deterministic algorithms. Let be $p$ this distribution over the $A_{i}$ such that $\mathbb{P}(\{\textbf{Algorithm is } A_{i}\})$.
+Let us calculate the cost of the best randomized algorithm on its worst instance :
+$$\displaystyle{B = \min_{A_{p}} \max_{j} \mathbb{E}(\textbf{cost}(A_{p},I_{j})) = \min_{A_{p}} \max_{j} \sum_{i} q_{i}C_{i,j} = p.C_{j}}$$
+
+Or, for any matrix $C$, we have :
+$$\displaystyle{\max_{j}p.C_{j} = \max_{q\geq 0, \sum_{q_{j}}=1} p.C.q}$$
+$$\displaystyle{\min_{i}C_{i}.q = \min_{p\geq 0, \sum_{p_{i}}=1} p.C.q}$$
+
+Let consider $p^{\star}$ that minimize $\displaystyle{\max_{q\geq 0} p.C.q}$. So :
+$$\displaystyle{\min_{p} \max_{q} p.C.q = \max_{q}p^{\star}.C.q \geq \max_{q} \min_{p} p.C.q} $$
+\flushright{$\square$}
+\flushleft
+
+\section*{Application to the OR/AND tree :} 
+The distribution "q" over the instance is the set of the values of the leaves such that the expected number of leaves inspected by the best deterministic algorithm for this distribution is something.
+
+Set the value of each leaf independantly to $1$ with probability $\varphi$ and $0$ with probability $1-\varphi$.
+
+We consider the NAND vertice which value is $1$ if and only if one of its leaves is $0$.
+$$\displaystyle{\mathbb{P}(\{\textbf{NAND}=0\}) = \mathbb{P}(\{\textbf{both are }1\}) = \varphi^{2}=1-\varphi \Rightarrow \varphi = \frac{\sqrt{5}-1}{2}}$$
+
+\subsection*{Lemma :}
+If the NAND-tree is balanced and all leaves have value $1$ with probability $p$ and value $0$ with probability $1-p$ indepandantly, the depth first search (DFS) algorithm is optimal among the deterministic algorithms.
+
+$$\mathbb{E}(\textbf{DFS}_{k} | 0,0) = \mathbb{E}(\textbf{DFS}_{k-1}|\textbf{value = }0)$$
+$$\begin{array}{cl}\mathbb{E}(\textbf{DFS}_{k}) &= \mathbb{P}(\{\textbf{value tree =0}\}).\mathbb{E}(\textbf{DFS}_{k} | \textbf{value = }0 )+ \mathbb{P}(\{\textbf{value tree = }1\}).\mathbb{E}(\textbf{DFS}_{k} | \textbf{value = }1 )\\
+ 
+&=(1-\varphi).\mathbb{E}(\textbf{DFS}_{k} | \textbf{value = }0 )+ \varphi .\mathbb{E}(\textbf{DFS}_{k} | \textbf{value = }1 )
+\end{array}$$
+
+
+We have:
+$$\mathbb{E}(\textbf{DFS}_{k} | \textbf{value = }0 )=2.\mathbb{E}(\textbf{DFS}_{k-1} | \textbf{value = }1 )$$
+
+And:
+$$\begin{array}{cl}\mathbb{E}(\textbf{DFS}_{k} | \textbf{value = }1 )=&\varphi.(1-\varphi).((\mathbb{E}(\textbf{DFS}_{k-1} | \textbf{value = }0 )+\mathbb{E}(\textbf{DFS}_{k-1} | \textbf{value = }1))\\
+& +(1-\varphi+\varphi^{2}).\mathbb{E}(\textbf{DFS}_{k-1} | \textbf{value = }0)
+\end{array}$$
+
+So:
+
+$$\mathbb{E}(\textbf{DFS}_{k} | \textbf{value = }1 )= \mathbb{E}(\textbf{DFS}_{k-1} | \textbf{value = }0)+\varphi.(1-\varphi).\mathbb{E}(\textbf{DFS}_{k-1} | \textbf{value = }1)$$
+
+Let us determine $\mathbb{E}(\textbf{DFS}_{k})$ in fuction of $\mathbb{E}(\textbf{DFS}_{k-1})$ :
+
+\begin{enumerate}
+\item evaluate the tree of size $k-1$ cost: $\mathbb{E}(\textbf{DFS}_{k-1})$.
+\item The value is $1$ with probability $\varphi$ by construction and 0 with probability $1-\varphi$
+\item with probability $1-\varphi \Rightarrow 0 \rightarrow$ DONE value is $1$ and with probability $\varphi \Rightarrow 1 \rightarrow$ and we need to evaluate the other subtree (cost: $\mathbb{E}(\textbf{DFS}_{k-1})$).
+\end{enumerate}
+
+So:
+$$\mathbb{E}(\textbf{DFS}_{k}=(1-\varphi).\mathbb{E}(\textbf{DFS}_{k-1})+2\varphi.\mathbb{E}(\textbf{DFS}_{k-1})$$
+
+So:
+
+$$\mathbb{E}(\textbf{DFS}_{k})=(1+\varphi).\mathbb{E}(\textbf{DFS}_{k-1})$$
+
+$$\mathbb{E}(\textbf{DFS}_{k})=(1+\varphi)^{k}$$
+
+finally:
+
+Our AND-OR tree has depth $2.k$ so the cost is at least $(1,618)^{2.k}$ for any deterministic algorithm over a distribution $q_{\varphi}$
+So, by the Yao's principle, the best cost of a randomized algorithm is at least $(1+\varphi)^{2.k}$
+
+\flushright{$\square$}
+\flushleft
+
+\end{document}

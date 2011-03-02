@@ -1,0 +1,282 @@
+\documentclass[a4paper,12pt]{report}
+\usepackage[latin1]{inputenc}
+
+\usepackage[T1]{fontenc}
+
+\usepackage[frenchb]{babel}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{algorithm,algorithmic}
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathmorphing,trees}
+%,shapes.geometric,trees,arrows,backgrounds,positioning,fit,petri}
+%\usepackage{pgf}
+
+\setcounter{secnumdepth}{3} % 3 niveaux de numérotations (4 avec les chapitres)
+
+%%% francisation des algorithmes
+\renewcommand{\algorithmicrequire} {\textbf{\textsc{Entrée:}}}
+\renewcommand{\algorithmicif}      {\textbf{si}}
+\renewcommand{\algorithmicendif}   {\textbf{fin si}}
+\renewcommand{\algorithmicelse}    {\textbf{sinon}}
+\renewcommand{\algorithmicthen}    {\textbf{alors}}
+\renewcommand{\algorithmicreturn}  {\textbf{renvoyer}}
+
+\floatname{algorithm}{Algorithme}
+
+\title{Un algorithme probabiliste récursif pour MIN-CUT}
+\author{Quentin Lefebvre\\Denis Sagaydak}
+
+\begin{document}
+
+\maketitle
+
+%%\begin{abstract}
+%%\end{abstract}
+
+\chapter{Le problème MIN-CUT}
+
+\section{Un premier algorithme basé sur la contraction d'arêtes}
+Le soin de cette partie est laissé à de bonnes âmes.
+
+\section{Un meilleur algorithme (récursif)}
+
+\subsection{Introduction}
+
+Dans la partie précédente, nous avons décrit un premier algorithme probabiliste pour
+le problème MIN-CUT, basé sur la contraction d'arêtes dans un multigraphe non orienté,
+non pondéré et sans boucle.
+
+La complexité en temps de cet algorithme était $O(n^2)$, avec une probabilité de succès
+supérieure à $\frac{2}{n^2}$.
+
+Ainsi, réaliser environ $(n^2 \ln n)$ exécutions de l'algorithme, et choisir le meilleur
+résultat, permettait d'atteindre une probabilité de réussite supérieure à $1 -\frac{1}{n^2}$. La
+complexité en temps de cette méthode est donc $O(n^4 \ln n)$, ce qui est moins bon
+que le meilleur algorithme déterministe.
+
+Dans cette partie, nous allons montrer comment améliorer l'algorithme précédent,
+en utilisant une méthode récursive.
+
+\subsection{Description de l'algorithme REC-MIN-CUT}
+
+Le point essentiel pour l'optimisation d'un algorithme basé sur les contractions d'arêtes est de compenser le fait
+que, plus la taille $n$ du graphe se réduit, plus la probabilité de tirer au hasard une arête d'une coupe minimale 
+devient élevée. Nous savons en effet que la probabilité d'échec d'une contraction est inférieure à $\frac{2}{n}$
+s'il n'y a pas eu précédemment d'échec. Ceci nous conduit à un algorithme qui va réaliser beaucoup de contractions
+aléatoires au début. Par contre, au fur et à mesure que le nombre de noeuds du graphe diminue, il est nécessaire
+de réitérer les calculs de coupe minimale, afin de compenser la baisse de la probabilité de succès des contractions.
+
+L'algorithme ci-dessous suit cette démarche. Nous justifierons par la suite ses paramètres.
+
+\begin{algorithm}[H]
+\caption{REC-MIN-CUT}
+\label{algo_rec_min_cut}
+
+\begin{algorithmic}[1]
+\REQUIRE $G = (V,E)$ un multigraphe non orienté, non pondéré et sans boucle.
+\STATE  $n \leftarrow |V|$
+\IF{$n \leqslant 6$}
+  \RETURN la meilleure coupe minimale de $G$ obtenue par recherche exhaustive.
+\ELSE
+  \STATE  $t \leftarrow  1 + \left\lceil \frac{n}{\sqrt{2}} \right\rceil$
+  \STATE Dupliquer $G$ en deux copies $G_1$ et $G_2$.
+  \STATE Appliquer indépendamment $(n-t)$ contractions aléatoires à chacun des deux graphes $G_1$ et $G_2$, de façon à ce qu'ils aient exactement $t$ noeuds.
+  \RETURN la meilleure coupe minimale entre REC-MIN-CUT$(G1)$ et REC-MIN-CUT$(G2)$.
+\ENDIF
+\end{algorithmic}
+\end{algorithm}
+
+\begin{center}
+\begin{tikzpicture} [ grow=down,
+		      every circle node/.style={minimum size=11mm},
+		      every node/.style={draw,shape=circle},
+%every path/.style={->,decorate,decoration=snake},
+%		      style={level distance=2cm},
+		      level 1/.style={sibling distance=12em, level distance=18mm},
+		      level 2/.style={sibling distance=12em, level distance=25mm},
+		      level 3/.style={sibling distance=6em, level distance=18mm},
+		      auto
+		    ]
+
+  \node{G} [edge from parent fork down]
+    child {node (g1) {$G_1$} [edge from parent fork down]
+      child {node (g11) {$G'_1$} [edge from parent/.style={->,decorate,decoration=snake,draw}]
+	child { node {...}[edge from parent/.style={->,draw}] }
+	child { node {...}[edge from parent/.style={->,draw}] }
+	edge from parent node[draw=none, left, text width=3cm, midway] {série de $(n - t)$ contractions aléatoires}
+      }
+    }
+    child {node (g2) {$G_2$} [edge from parent fork down]
+      child {node (g22) {$G'_2$} [edge from parent/.style={->,decorate,decoration=snake,draw}]
+	child { node {...}[edge from parent/.style={->,draw}] }
+	child { node {...}[edge from parent/.style={->,draw}] }
+	edge from parent node[draw=none, right, text width=3cm, midway] {série de $(n - t)$ contractions aléatoires}
+      }
+      edge from parent node[draw=none, right, text width=3cm, midway] {duplication}
+    }
+  ;
+\end{tikzpicture}
+
+Fig. 1 : Déroulement de l'algorithme REC-MIN-CUT
+
+L'arbre de calcul exploré par l'algorithme est illustré par la figure 1
+
+\end{center}
+
+\subsection{Analyse de l'algorithme REC-MIN-CUT}
+
+\subsubsection{Correction de l'algorithme}
+
+Nous montrons ici la terminaison de l'algorithme. En pratique, deux facteurs permettent à REC-MIN-CUT de terminer.
+
+Tout d'abord, si la condition de la ligne 2 est vérifiée, alors une recherche exhaustive est lancée et l'algorithme termine.
+
+Une seconde condition suffisante pour la terminaison est que, pour toute exécution arrivant en ligne 6, on doit avoir : $t < n$. En effet, ceci assure que la taille des graphes manipulés est strictement décroissante. Or, on a
+\begin{displaymath}
+t < n \quad \Leftrightarrow \quad 1 + \left\lceil \frac{n}{\sqrt{2}} \right\rceil < n \quad \Leftrightarrow \quad n \geqslant 7
+\end{displaymath}
+ce qui justifie le choix de la condition $n \leqslant 6$ en ligne 2. Bien sûr, cette borne dépend du choix de $t$, qui fera l'objet d'une analyse ultérieure.
+
+Nous sommes ainsi rassurés : notre algorithme termine.
+
+\subsubsection{Complexité en temps de l'algorithme}
+
+Rappelons que l'opération de contraction d'une arête se fait en $O(n)$ opérations,
+pour un graphe de taille $n$ codé sous forme de liste d'adjacence, voire de matrice.
+
+Soit $T(n)$ le temps d'exécution maximum de l'algorithme pour un graphe de taille $n$ en entrée.
+
+\paragraph{Lemme :}
+\begin{displaymath}
+T(n) = O(n^2 \ln n)
+\end{displaymath}
+
+\paragraph{Preuve :}
+
+Si $n$ est inférieur à 6, alors $T(n)$ est borné une constante, $C_6$, qui est le temps d'exécution maximum
+d'un algorithme de recherche exhaustive pour le problème MIN-CUT, pour un graphe de taille inférieure à 6.
+\begin{displaymath}
+n \leqslant 6 \quad\Rightarrow\quad T(n) \leqslant C_6
+\end{displaymath}
+
+Soit $n \geqslant 7$.
+
+En ligne 6, l'algorithme fait une copie de G, ce qui coûte $O(n^2)$.
+
+En ligne 7, l'algorithme effectue $2(n - t)$ contractions d'arêtes, ce qui coûte $O(n)$.
+
+En ligne 8, les 2 appels récursifs coûtent au maximum\\
+  $2T(t) = 2T\left(1 + \left\lceil \frac{n}{\sqrt{2}} \right\rceil\right)$.
+
+On obtient donc la relation de récurrence :
+\begin{displaymath}
+n \geqslant 7 \quad\Rightarrow\quad \ T(n) = 2T\left(1 + \left\lceil \frac{n}{\sqrt{2}} \right\rceil\right) + g(n) \quad\mbox{, où}\quad g(n)=O(n^2).
+\end{displaymath}
+
+Remarquons que : $1 + \left\lceil \frac{n}{\sqrt{2}} \right\rceil = \Theta\left(\frac{n}{\sqrt{2}}\right)$. Par ailleurs, notons :
+
+$f$ : le nombre de feuilles de l'arbre de calcul, qui correspond au nombre d'appels à l'algorithme de calcul d'une coupe minimale par recherche exhaustive ; et
+
+$d$ : la profondeur de l'arbre de calcul, comptée en nombre de séries de $(n-t)$ contractions, effectuées de la racine G jusqu'à une feuille (quelconque) de l'arbre.
+
+On peut alors écrire :
+\begin{equation}
+\begin{split}
+T(n) & =  \left( \sum_{k=0}^{d-1}{2^k g\left(\frac{n}{\sqrt{2}^k}\right)} \right)+ f \times C_6 \nonumber\\
+     & =  \left(\sum_{k=0}^{d-1}{2^k O\left(\left(\frac{n}{\sqrt{2}^k}\right)^2\right)} \right) + f \times C_6 \nonumber\\
+     & =  \left(\sum_{k=0}^{d-1}{2^k O\left(\frac{n^2}{2^k}\right)} \right)+ f \times C_6 \nonumber\\
+     & =  O\left(n^2 \sum_{k=0}^{d-1}{2^k \left(\frac{1}{2^k}\right)} \right)+ f \times C_6 \nonumber\\
+T(n) & =  O\left(n^2 d \right) + f \times C_6. \nonumber\\
+\end{split}
+\end{equation}
+Or, on a :
+$\left\{\begin{array}{rl}
+  & \sqrt{2}^d = \Theta(n) \\
+  & d = \Theta(\ln n) \\
+  & f = 2^d = \Theta(n^2)
+        \end{array} \right.$, ce qui permet de conclure :
+ 
+\begin{equation}
+\begin{split}
+T(n) & =  O(n^2 \ln n) + O(n^2)\nonumber\\
+T(n) & = O(n^2 \ln n)
+\end{split}
+\end{equation}
+
+\subsubsection{Complexité en mémoire de l'algorithme}
+
+Pour l'occupation mémoire, le point critique de cet algorithme réside dans la duplication du graphe en deux copies pour les appels récursifs (lignes 6-8).
+
+Le stockage d'un graphe de taille $n$ demande une mémoire en $O(n^2)$.
+Une programmation naïve de l'algorithme conduit au stockage de tous les graphes de l'arbre de calcul.
+Par le même raisonnement que précédemment, on obtient une complexité mémoire en $O(n^2 \ln n)$.
+
+Soit $M(n)$ la mémoire maximale utilisée par l'algorithme pour un graphe de taille $n$ en entrée.
+\paragraph{Lemme :}
+\begin{displaymath}
+M(n) = O(n^2)
+\end{displaymath}
+
+\paragraph{Preuve :}
+(Idée) On peut en fait réduire l'occupation mémoire à un seul graphe (donc $O(n^2)$), auquel il faut ajouter 
+une structure de donnée pertinente pour gérer les appels récursifs (également en $O(n^2)$). Cette structure 
+correspond en pratique à une ``pile des appels récursifs et des contractions effectuées''.
+
+Ceci permet d'obtenir un algorithme efficace en termes d'occupation mémoire, soit $M(n) = O(n^2)$.
+
+\subsubsection{Probabilité de succès de l'algorithme}
+
+Soient $G$ un graphe de taille $n$ de l'arbre de calcul, et $G'$ un de ses descendants obtenu après une série
+de $(n-t)$ contractions d'arêtes aléatoirement choisies.
+
+Etant donnée une coupe minimale de $G$, notons $P_{SC}$ la probabilité de succès d'une série de $(n-t)$
+contractions. Autrement dit, $P_{SC}$ désigne la probabilité pour qu'aucune des arêtes de la coupe minimale
+ne soit contractée lors de la série de $(n-t)$ contractions aléatoires successives.
+
+\paragraph{Lemme :}
+On obtient $P_{SC} \geqslant \frac{1}{2}$ pour $t \geqslant  1 + \left\lceil \frac{n}{\sqrt{2}} \right\rceil$.
+
+\paragraph{Preuve :}
+Rappelons que la probabilité d'échec d'une contraction sur un graphe à $n$ noeuds est inférieure à $\frac{2}{n}$.
+
+Ainsi, la probabilité de succès d'une contraction d'une contraction est supérieure à :
+\begin{displaymath}
+1 - \frac{2}{n} = \frac{n-2}{n} .
+\end{displaymath}
+
+On en déduit pour la probabilité $P_{SC}$ :
+\begin{equation}
+\begin{split}
+P_{SC} & \geqslant \prod_{i = t+1}^{n}{\frac{i-2}{i}} \nonumber\\
+       & \geqslant \frac{n-2}{n} \times \frac{n-3}{n-1} \times \dots \times \frac{t}{t+2} \times \frac{t-1}{t+1} \nonumber\\
+       & \geqslant \frac{t(t-1)}{n(n-1)} \nonumber\\
+P_{SC} & \geqslant \left( \frac{t-1}{n} \right) ^2
+\end{split}
+\end{equation}
+
+et donc :
+\begin{displaymath}
+P_{SC} \geqslant \frac{1}{2} \quad \Leftrightarrow \quad t \geqslant  1 + \left\lceil \frac{n}{\sqrt{2}} \right\rceil.
+\end{displaymath}
+
+
+
+\paragraph{Théorème :}
+L'algorithme REC-MIN-CUT renvoie une coupe minimale avec une probabilité $\Omega \left( \frac{1}{\ln n} \right)$.
+
+\paragraph{Corollaire :}
+On obtient une probabilité de succès supérieure à $1 - \frac{1}{n^2}$ en exécutant $\Theta\left((\ln n)^2\right)$ 
+itérations de cet algorithme et en renvoyant la meilleure valeur obtenue. La complexité globale de cette méthode
+est ainsi $O(n^2 (\ln n)^3)$, ce qui est meilleur que le meilleur algorithme déterministe.
+
+\paragraph{Preuve :}
+Si l'on répète $r$ fois l'agorithme REC-MIN-CUT, la probabilité de n'avoir que des échecs est de l'ordre de
+\begin{displaymath}
+\left( 1 - \frac{1}{\ln n} \right)^r
+\end{displaymath}
+et :
+\begin{displaymath}
+\left( 1 - \frac{1}{\ln n} \right)^r \leqslant \frac{1}{n^2} \quad \Rightarrow \quad r = \Theta\left((\ln n)^2\right) .
+\end{displaymath}
+
+\end{document}

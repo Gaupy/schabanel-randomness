@@ -1,0 +1,467 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8x]{inputenc}
+\usepackage[english]{babel}
+\usepackage{calc,amsmath, amssymb, amsthm}
+\usepackage{pst-all}
+
+\newcommand{\NP}{\mathrm{NP}}
+\newcommand{\PCP}{\mathrm{PCP}}
+\newcommand{\prob}[1]{\mathbb{P}\left[#1\right]}
+
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{prop}[thm]{Proposition}
+\theoremstyle{remark}
+\newtheorem*{example}{Example}
+\newsavebox{\fmbox}
+\newenvironment{encadre}[1]
+{
+\begin{lrbox}{\fmbox}
+\begin{minipage}{\textwidth-3em}
+\vspace{0.3\baselineskip}\setlength{\parskip}{0.5em}
+}
+{
+\vspace{\baselineskip}
+\end{minipage}\end{lrbox}
+\begin{center}
+\fbox{\hspace{1em}\usebox{\fmbox}\hspace{1em}}
+\end{center}
+\vspace{0.5\baselineskip}
+}
+
+\author{Thibaut Horel\and Papa Thierno Diop}
+\title{Lecture 5\\ One of the main step of the PCP theorem: $\NP \subseteq
+\PCP(\mathrm{poly}(n),1)$}
+
+\begin{document}
+\maketitle
+\section{Introduction}
+The goal of this lecture is to prove the following theorem
+\begin{thm}\label{thm1}
+$\NP \subseteq
+\PCP(\mathrm{poly}(n),1)$
+\end{thm}
+
+Although it is weaker than the PCP theorem it is one the main step of its proof.
+We will use the following proposition:
+\begin{prop}
+The PCP class is stable under polynomial reduction. Formally:
+\begin{displaymath}
+(L\leq_P L' \quad\mathrm{and}\quad L'\in \PCP(\mathrm{poly}(n),1) \implies L\in
+\PCP(\mathrm{poly}(n),1)
+\end{displaymath}
+\end{prop}
+
+\begin{proof}
+Let $M$ be a polynomial-time Turing machine transforming instances of $L$ in
+instances of $L'$. Let $V$ be a polynomial-time verifier (with random access)
+for the language $L'$:
+\begin{displaymath}
+L' = \{ x: \exists y, V(x,y) = 1 \}
+\end{displaymath}
+Then $(x,y)\mapsto V(M(x),y)$ is a polynomial-time verifier for the language
+$L$. 
+\end{proof}
+
+Thus, if we prove for a single NP-complete problem that it is also in
+$\PCP$, then all the problems that are polytime reducible to
+it (that is, all the NP problems) will also be in $\PCP(\mathrm{poly}(n),1)$.
+Here we will study the problem \textsf{QUADEQ}.
+
+\begin{encadre}{\textwidth}
+\begin{center}
+\textbf{\textsf{QUADEQ} Problem}
+\end{center}
+
+\textbf{Input:} $n\in\mathbf{N}^*$, $m\in\mathbf{N}^*$, a set of $m$ quadratic
+multivariate equations over $n$ variables: $x_1,\ldots,x_n$.
+
+\textbf{Output:} Is it possible to find an assignment of the variables in
+$(\mathbf{Z}/2\mathbf{Z})^n$ satisfying the set of equations?
+\end{encadre}
+
+\begin{example}
+\textbf{Input:} $n=5$, $m=3$
+\begin{displaymath}
+\left\{\begin{array}{rl}
+x_1x_2 + x_2x_3 + x_4x_1 & = 1\\
+x_1x_3 + x_2x_4 & = 0\\
+x_1x_3 + x_4x_5 + x_1x_2 & = 1        
+\end{array}\right.
+\end{displaymath}
+
+\textbf{Ouput:} The set of equations is satisfiable. For example, $x_1 = x_2 =
+  \ldots = x_5 = 1$ is a valid assignment.
+\end{example}
+
+In the next sections we will prove that \textsf{QUADED} is NP-complete and then
+we will construct a $\PCP(n^2,1)$ verifier.
+
+\section{NP-completeness of \textsf{QUADEQ}}
+
+The proof is straightforward. First, we prove that \textsf{QUADEQ} is in
+NP, then we prove that it is NP-hard by reducing \textsf{3-SAT} to it.
+
+\paragraph{$\textsf{QUADEQ}\in\NP$:} It is easy to build a polynomial-time
+verifier for \textsf{QUADEQ}: given an assignment of the variables
+$(x_1,\ldots,x_n)$, the verifier just checks whether this assignment is valid
+or not.
+
+\paragraph{Reduction from \textsf{3-SAT} to \textsf{QUADEQ}:} Given a boolean
+formula in 3-CNF we first build a boolean circuit which only contains
+\textsf{NOT}, \textsf{AND} and \textsf{OR} gates. It is thus a binary tree where
+the nodes are logical gates and where the leaves are the literals of the
+boolean formula. This tree can be built by induction on the number of clauses:
+
+\begin{itemize}
+ \item Given a clause containing 3 literals: $(\lnot)? x \lor(\lnot)?
+y\lor(\lnot)?z$ (here the question marks indicate that the \emph{not} operator
+might or might not be there), we build the following circuit:
+
+\begin{figure}[h]
+\begin{center}
+\pstree[treemode=U,levelsep = 1cm]{\TCircle{$\lor$}}{
+\pstree{\TCircle{$\lor$}}{
+  \pstree[nodesepB=5pt]{\TCircle{$?$}}{\Tr{$x$}}
+  \pstree[nodesepB=5pt]{\TCircle{$?$}}{\Tr{$y$}}
+}
+\pstree[nodesepB=5pt]{\TCircle{$?$}}{\skiplevel{\Tr{$z$}}}
+}
+\end{center}
+\end{figure}
+
+Where the question mark is a $\textsf{NOT}$ gate if there is a $\lnot$
+operator in the clause.
+
+\item Suppose that we are given a formula with $(n+1)$ clauses. We first build
+by induction a tree for the $n$ first clauses : $T_1$. Then we build a
+tree $T_2$ for the last clause as explained in the previous step. Then the tree
+for the whole formula will be:
+\newpage
+\begin{figure}[h]
+\begin{center}
+\pstree[treemode=U,levelsep = 1cm, nodesepB=5pt]{\TCircle{$\land$}}{
+  \Tr{$T_1$}
+  \Tr{$T_2$}
+}
+\end{center}
+\end{figure}
+
+It is easy to see that the size of the tree is linear in the size of the
+formula.
+\end{itemize}
+
+Then we build a set of equations simulating the computation of the boolean
+value of the formula. This computation is done from the literals (i.e. the
+leaves) to the root: 
+
+\begin{enumerate}
+\item Attach a variable to each node and leaf of the tree.
+\item Build the set of equations by induction (on the depth of the tree) using
+the following rules:
+\begin{itemize}
+ \item For a not gate:
+\begin{figure}[h]
+\begin{center}
+\pstree[treemode=U,levelsep = 1cm]{\TCircle{$\lnot$}~{$u_1$}}{
+\TCircle{}~[tnpos=l]{$u_2$}
+}
+\end{center}
+\end{figure}
+
+Add the equation: $u_1 = 1+u_2$
+\item For a two-wired gate:
+\begin{figure}[!h]
+\begin{center}
+\pstree[treemode=U,levelsep = 1cm]{\TCircle{?}~{$u_1$}}{
+\TCircle{}~[tnpos=l]{$u_2$}
+\TCircle{}~[tnpos=r]{$u_3$}
+}
+\end{center}
+\end{figure}
+
+If it is a \textsf{AND} gate, add the equation: $u_1$ = $u_2u_3$. If it is a
+\textsf{OR} gate, add the equation: $u_1 = 1 - (1-u_2)(1-u_3)$.
+\end{itemize}
+\end{enumerate}
+
+Let $(u_1,\ldots,u_n)$ be a solution to this set of equations where:
+\begin{itemize}
+ \item $u_n$ is the variable attached to the root node.
+\item $(u_1,\ldots,u_r)$ are the variables attached to the leaves (i.e the
+literals of the inital formula).
+\end{itemize}
+Then $u_n$ is exactly the boolean value of the inital formula for the
+assignment $(u_1,\ldots,u_r)$ of the literals. Thus we add a final equation to
+this set of equation: $u_n=1$. We obtain a system of quadratic equations
+such that: \emph{the system has a solution if and only if there
+exists an assignment of the literals satisfying the boolean formula}. This
+gives us a reduction from \textsf{3-SAT} to \textsf{QUADEQ} and the NP-hardness
+of \textsf{QUADEQ}.
+
+\newpage
+\section{A $\PCP(n^2,1)$ verifier for \textsf{QUADEQ}}
+
+In this section, we describe a PCP verifier for \textsf{QUADEQ}. 
+
+\paragraph{Notations:} First we can notice that in $\mathbf{Z}/2\mathbf{Z}$ we
+have $x^2=x$. Hence, we can assume that all equations only have terms of degree
+2. For example, an equation of the form $xy + x =1 $ can be replaced by the
+equation $xy + x^2=1$.
+
+An instance of a \textsf{QUADEQ} over the variables $x_1,x_2,\ldots,x_n$ can be
+written $AX=b$ where:
+\begin{itemize}
+\item $A$ is a $m \times n^2$ matrix, $(A_{k,( i, j)})$, where
+$k\in\{1,\ldots,m\}$ and $(i,j)\in\{1,\ldots,n\}^2$: $ A_{k,( i, j)}$ is the
+coefficient of $x_ix_j$ in the $k^{th}$ equation.
+\item  $b = (b_k)_{1\leq k\leq m}\in\{0,1\}^m$: $b_k$
+is the constant term of the $k^{th}$ equation.
+\item $X_{( i, j)}=x_{i}x_{j}=x\otimes x$ where $(i,j)\in\{1,\ldots,n\}^2$.
+\end{itemize}
+
+$X$ will not be computed by the verifier because this would require to probe
+more than a constant number of positions in $x$. But the proof can be
+exponentially large, so the proof will also contain $X$ and the verifier will
+verify that $X$ is indeed related to $x$: $X=x\otimes x$.
+
+Still, it is not to possible to verify that $X=x\otimes x$ with a constant
+number of probes to $x$. The proof will give an encoding $X$ and $x$ more
+suited to such computations: the \emph{Walsh-Hadamard} encoding.
+
+\paragraph{Walsh-Hadamard encoding:} Let $x\in\{0,1\}^n$ the vector we want to
+encode, let us define:
+\begin{displaymath}
+\begin{array}{rrl}
+f_x:&\{0,1\}^n&\longrightarrow\{0,1\}\\
+&r&\longrightarrow{}^tr\cdot x
+\end{array}
+\end{displaymath}
+Then the encoding of $x$ is a table of size $2^n$: the truth table of the
+linear function $f_x$. From $f_x$ we can recover $x$ by $x_i=f(e_i)$ where $e_i$
+is the $i^{th}$ standard base vector ($i^{th}$ position equal to 1).
+
+\paragraph{} The PCP verifier expects the proof to be:
+\begin{itemize}
+\item the table of a linear function $f:\{0,1\}^n\rightarrow\{0,1\}$: the
+Walsh-Hadamard encoding of $x$, a valid assignment for the variables. This
+table has size $n$.
+\item the table of a linear function $g:\{0,1\}^{n^2}\rightarrow\{0,1\}$: the
+Walsh-Hadamard encoding of $X$, such that $X=x\otimes x$. This table has size
+$n^2$.
+\end{itemize}
+
+\begin{figure}[h]
+\begin{center}
+\begin{pspicture}(0,-0.5)(10,1)
+\psframe(0,0)(5,0.6)
+\psframe(4.95,0)(10,0.6)
+\pcline[arrows=<->](0,-0.3)(5,-0.3)
+\ncput*{$2^n$ bits}
+\pcline[arrows=<->](5,-0.3)(10,-0.3)
+\ncput*{$2^{n^2}$ bits}
+\rput(2.5,0.3){$f:r\mapsto {}^tr\cdot x$}
+\rput(7.5,0.3){$g:s\mapsto {}^ts\cdot (x\otimes x)$}
+\end{pspicture}
+\caption{Structure of the proof given to the PCP verifier}
+\end{center}
+\end{figure}
+
+\newpage
+
+The verifier works in three steps:
+\begin{enumerate}
+\item Check that $f$ and $g$ are linear: $x^f$ (resp. $X^g$) will denote the
+vector encoded by $f$ (resp. $g$). 
+\item Check that $X^g = x^f\otimes x^f$.
+\item Check that $AX^g = b$.
+\end{enumerate}
+
+ 
+\subsection{Check that $f$ and $g$ are linear functions}
+We use linearity testing to check with $O(1)$ probes that $f$ and $g$ are
+$0.999$ close to some linear functions $\tilde{f}$ and  $\tilde{g}$. If $f$ and
+$g$ are indeed linear, this test is passed with probability $1$.
+
+If none of $f, g$ is 0.999-close to a linear function, then the proof is
+rejected with high probability. Therefore  we can assume for the rest that there
+exist two linear functions $\tilde{f}$ and $\tilde{g}$ respectively 0,999-close
+to $f$ and $g$.
+
+By using linear decoding, we can also assume that the verifier is able to query
+the value of $\tilde{f}$ and $\tilde{g}$ at any point with probability at least
+$0.998=2 \times 0.999 -1$.
+
+\subsection{Check that $X^g = x^f\otimes x^f$}
+
+The verifier does the following: 
+\begin{itemize}
+\item Choose two vectors $r$ and $r'$ in $\{0,1\}^n$ independently and
+uniformly at random
+\item Verify that $g(r\otimes r') = f(r)f(r')$ 
+\end{itemize}
+This test only requires two probes to the proof (a probe to the proof is
+simply a query to one value of $f$ or one value of $g$).
+
+Let us first rewrite the two terms of the test:
+\begin{equation}\label{f}
+f(r)f(r') = \left({}^tr\cdot x^f\right)\left({}^tr'\cdot x^f\right) 
+= \left(\sum_{i=1}^n r_ix^f_i\right) \left(\sum_{j=1}^n r'_jx^f_j\right)
+= \sum_{(i,j)} r_ir'_jx^f_ix^f_j
+\end{equation}
+\begin{equation}\label{g}
+g(r\otimes r') = {}^t(r\otimes r')\cdot X^g=\sum_{(i,j)}r_ir'_jX^g_{(i,j)}
+\end{equation}
+
+\paragraph{Completeness of the test:} Assume that the proof is what we expect it
+to be: the encodings of $X^g$ and $x^f$ such that $X^g = x^f\otimes x^f$. Then
+we can rewrite~\eqref{g}:
+\begin{displaymath}
+g(r\otimes r') = \sum_{(i,j)}r_ir'_jx^f_ix^f_j = f(r)f(r')
+\end{displaymath}
+So if the proof is valid, the test will pass with probability 1.
+
+\paragraph{Probability of failure:} Let us now assume that $X^g\neq x^f\otimes
+x^f$, then we want to estimate the probability that the test will reject the
+proof:
+\begin{displaymath}
+\prob{g(r\otimes r')\neq f(r)f(r')}
+\end{displaymath}
+Let us write, for any fixed $r'\in\{0,1\}^n$:
+\begin{displaymath}
+\Phi _{r'}:r\mapsto f(r)f(r') 
+\end{displaymath}
+\begin{displaymath}
+\Psi _{r'}:r\mapsto g(r \otimes r')
+\end{displaymath}
+Then we have:
+\begin{equation}\label{main}
+\begin{split}
+\prob{g(r\otimes r')\neq f(r)f(r')}
+&= \prob{\Psi_{r'}(r)\neq\Phi_{r'}(r)}\\
+&\geq \prob{\Psi_{r'}(r)\neq\Phi_{r'}(r)|\Psi_{r'}\neq\Phi_{r'}}
+\prob{\Psi_{r'}\neq\Phi_{r'}}
+\end{split}
+\end{equation}
+
+It is easy to see in \eqref{f} and \eqref{g} that $\Psi_{r'}$ and $\Phi_{r'}$
+are linear. Hence, by using the fact two different linear functions differ on
+at least half of their inputs:
+\begin{equation}\label{first}
+\prob{\Psi_{r'}(r)\neq\Phi_{r'}(r)|\Psi_{r'}\neq\Phi_{r'}} \geq \frac{1}{2}
+\end{equation}
+
+It remains to estimate $\prob{\Psi_{r'}\neq\Phi_{r'}}$. By using \eqref{f} and
+\eqref{g}, we can rewrite:
+\begin{displaymath}
+\Phi_{r'}:r\mapsto{}^tr\cdot \big(x^ff(r')\big)
+\end{displaymath}
+\begin{displaymath}
+\Psi_{r'}:r\mapsto{}^tr\cdot X_{r'}\quad\mathrm{with}\quad
+X_{r'} = \left(\sum_{j=1}^n r'_jX^g_{(i,j)}\right)_{1\leq i\leq n}
+\end{displaymath}
+Hence, $\Psi_{r'}\neq\Phi_{r'}\Leftrightarrow\big(x^ff(r')\big)\neq X_{r'}$.
+But the functions $r'\mapsto\big(x^ff(r')\big)$ and $r'\mapsto X_{r'}$ are also
+linear, and if $X^g\neq x^f\otimes x^f$ then they are different and then differ
+on at least half of their inputs. So:
+\begin{equation}\label{second}
+\prob{\Psi_{r'}\neq\Phi_{r'}}
+=\prob{x^ff(r')\neq X_{r'}}
+\geq\frac{1}{2}
+\end{equation}
+
+Plugging \eqref{first} and \eqref{second} into \eqref{main}, we get:
+\begin{displaymath}
+\prob{g(r\otimes r')\neq f(r)f(r')}\geq\frac{1}{2}\times\frac{1}{2}=\frac{1}{4}
+\end{displaymath}
+Then, at this step, the verifier will reject an invalid proof with probability
+at least $1/4$.
+
+
+\subsection{Satisfiability: verify that $AX^g = b$}
+We will assume here that the first two steps have passed: the functions
+encoded in the proof are linear and encodes two vectors $x^f$ and $X^g$ such
+that $X^g = x^f\otimes x^f$. It remains to verify that $x^f$ is a valid
+assignment, i.e:
+\begin{displaymath}
+\forall k\in\{1,\ldots,m\},\;\sum_{(i,j)} A_{k,(i,j)}x^f_ix^f_j=b_k
+\end{displaymath}
+Note that $x^f_ix^f_j= X^g_{(i,j)}$ so this can be rewritten as:
+\begin{displaymath}
+\forall k\in\{1,\ldots,m\},\; {}^tA_k\cdot X^g = b_k
+\end{displaymath}
+And using the definition of $X^g$ (the vector encoded by $g$):
+\begin{displaymath}
+\forall k\in\{1,\ldots,m\},\; g(A_k) = b_k
+\end{displaymath}
+The problem is that the verifier cannot verify all these equations because it
+would require more than a constant number of probes to $g$. So it will only
+verify a random linear combination of the equations with the following
+procedure:
+\begin{itemize}
+\item pick a vector $r\in\{0,1\}^m$ uniformly at random.
+\item compute vector $A_r = \left(\sum_{k=1}^m r_kA_{k,(i,j)}\right)_{(i,j)}$
+with $(i,j)\in\{1,\ldots,n\}^2$.
+\item verify that $g(A_r) = {}^tr\cdot b$.
+\end{itemize}
+
+First remark that:
+\begin{equation}\label{end}
+\begin{split}
+g(A_r) =
+{}^tA_r\cdot X^g &= \sum_{(i,j)}\sum_{k=1}^m r_kA_{k,(i,j)}X^g_{(i,j)}\\
+&= \sum_{k=1}^m r_k \sum_{(i,j)}A_{k,(i,j)}X^g_{(i,j)}\\
+&= \sum_{k=1}^m r_k {}^tA_k\cdot X^g = {}^tr\cdot (AX^g)
+\end{split}
+\end{equation}
+So probing the value of $g$ on vector $A_r$ is indeed equivalent to compute the
+linear combination given by the random vector $r$ of the left part of the
+system. The test then simply compares this linear combination to the same
+linear combination of the right part of the system.
+
+\paragraph{Completeness of the test:} Assume that $AX^g = b$, then for all $k$
+in $\{1,\ldots,m\}$ we have ${}^tA_k\cdot X^g = b_k$, and plugging into
+\eqref{end}
+we get:
+\begin{displaymath}
+g(A_r) = \sum_{k=1}^m r_kb_k = {}^tr\cdot b
+\end{displaymath}
+Then if the proof is correct, the test will pass with probability 1.
+
+\paragraph{Probability of failure:} Now assume that $AX^g \neq b$, then the two
+functions $r\mapsto g(A_r)$ and $r\mapsto {}^tr\cdot b$ are linear and
+different, so they differ on at least half of their inputs:
+\begin{displaymath}
+\prob{g(A_r)\neq {}^tr\cdot b} \geq \frac{1}{2}
+\end{displaymath}
+So in this case the verifier will reject the proof with probablility at least
+$1/2$.
+\newpage
+To the sum up, we have built a $\PCP(n^2,1)$  verifier because :
+\begin{itemize}
+\item If the system is satisfiable, then there exists a proof that is accepted
+with probability one and if the system is not satisfiable, any proof will be
+rejected with a constant probability.
+\item The verifier only makes $O(1)$ probes to the proof (each step consists in
+probing a small number of random places in the proof and doing some computation
+with them).
+\item The verifier uses $O(n^2)$ random bits : indeed, it only needs to ask
+random indexes in the proof table wich is $2^n+2^{n^2}$ big. So we need random
+numbers between $1$ and $2^n+2^{n^2}$, wich only requires $O(n^2)$ bits.
+\end{itemize}
+
+Using this verifier and the fact that \textsf{QUADEQ} is also in NP, we have
+finally prooved the theorem~\ref{thm1}.
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}

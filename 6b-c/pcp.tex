@@ -1,0 +1,163 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\IfFileExists{pdfsync.sty}{\usepackage{pdfsync}}{}
+\usepackage[frenchb]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage{fullpage}
+
+
+%%% Macros
+
+\newtheorem{define}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corolary}
+\newtheorem{proposition}{Proposition}
+\newtheorem{remark}{Remark}
+\newtheorem{example}{Example}
+\newtheorem{lemma}{Lemma}
+\newenvironment{proof}{{\bf Proof}~:}{\hfill $\Box$ }
+\def\pr{\mathop{\rm Pr}\nolimits}
+
+
+
+\begin{document}
+\title{Using Randomness in Computer Science}
+\author{Nathaniel Carré \& Mikaël Rabie}
+\date{\today}
+\maketitle
+\section{Self-correction of integer multiplication}
+We have the program $A$ (seen as a matrix $N\times N$), and it is supposed to be such that $A(x,y)=xy\mod N$, for $(x,y)\in[0,N-1]^2$. There might be bugs in the matrix (i.e. pairs $(x,y)$ such that $A(x,y)\ne xy\mod N$), but $|\#bugs|\le10\%$ of the pairs. We cannot check the correctness, how can we fix that with randomness ?\\
+
+We can use the following procedure that provides $xy\mod N$ with probability $\ge60\%$
+\begin{itemize}
+\item Draw 2 random numbers $(r,s)\in[0,N-1]^2$
+\item Output $A(x+r,y+s)-A(r,y+s)-A(x+r,s)+A(r,s)$
+\end{itemize}
+
+If $A$ provides the good results for our requests, we get :\\
+$(x+r)(y+s)-r(y+s)-(x+r)s+rs=xy+xs+ry+rs-ry-rs-xs-rs+rs=xy$.
+
+The access of $A$ asked are uniformly random. To be convinced of that, we just need the following lemma :
+
+\begin{lemma}
+  If $G$ is a group and $U$ a uniform random variable over $G$, then $\forall g\in G$, $g+U$ is a uniform random variable over $G$.
+\end{lemma}
+\begin{proof}
+$\forall y\in G$, $\pr\{gU=y\}=\pr\{U=g^{-1}y\}=\frac{1}{|G|}$.
+
+\end{proof}
+
+With that, the probability that each of the entry of A required is wrong is $\le 10\%$. It implies that the output value is not equal to $xy\mod N$ with probability $\le 40\%$. Pr$\{Failure\}\le 40\%$. Because it works for any input, if we repeat this process and take the majority of the value, we can have a probability of success as close to 1 as we want. (We can also compare the result to $A(x,y)$ to improve the program.)\\
+
+
+
+
+Multiplication is "random-self reductible". This problem has a good "worst case" to deal with.
+
+\section{The class PCP$(r,q)$ and GAP-3SAT$_{1,c}$}
+
+\begin{define}
+PCP$(r,q)$=$\left\{
+\begin{array}{r l}
+L| & \exists\text{bPTTM V  st :}\\
+ & \text{1 : V uses }\theta(n)\text{ random bits}\\
+ & \text{2 : }V(x,y)\text{ probes only }\theta(q)\text{ bits of y}\\
+ & \text{3 : if x}\in L,\exists \text{ y st }\pr\{V(x,y)=1\}=1\\
+ & \text{4 : if x}\not\in L,\forall \text{ y }\pr\{V(x,y)=1\}\le\frac{1}{2}\\
+\end{array}
+\right\}$
+\end{define}
+
+\begin{define}
+SAT=$\left\{
+\begin{array}{r l}
+\varphi(x)=\bigwedge\limits_{i=j}^mC_j(x)| & \exists \text{x st }\forall j,C_j(x)=1\\
+\end{array}
+\right\}$
+
+$\varphi=\bigwedge\limits_{i=j}^mC_j\in$SAT iff $\exists x$ satisfying the $m$ clauses.
+
+$\varphi\not\in$SAT iff $\forall x$, $x$ satisfies at most $m-1$ clauses of $\phi$.
+\end{define}
+
+In that way, there is a gap between the number of accepted clause by $\varphi$ depending on weather $\varphi$ is in SAT or not.
+
+The gap is :
+\begin{itemize}
+\item $\ge m$ satisfiable clauses at the same time if $\varphi\in$L.
+\item $\le m-1$ satisfiable clauses at the same time if $\varphi\not\in$L.
+\end{itemize}
+
+We will now amplify this gap, asking that at most $cm$, with $c<1$, clauses are satisfiable at the same time if $\varphi$ is not totally satisfiable.
+
+\begin{define}
+GAP-3SAT$_{1,c}$ is such that :
+\begin{itemize}
+\item $\varphi\in$GAP-3SAT$_{1,c}$ if $\varphi$ is satisfiable
+\item $\varphi\not\in$GAP-3SAT$_{1,c}$ if at most $cn$ clauses of $\varphi$ can be simultaneously satisfied
+\end{itemize}
+\end{define}
+
+\section{PCP and NP theorem}
+
+We want to prove the theorem :
+
+\begin{theorem}
+NP=PCP$(\log n,1)$
+\end{theorem}
+
+For that, we will first prove that PCP$(log\,n,\,1)\,\subseteq\,$NP.
+
+Indeed, the verifier choses $r=O(log\,n)$ bits randomly, which means $2^r=Poly(n)$ random choices possible. Thus, the verifier can check all random strings in polynomial time to find whether a word is in the langage or not.
+\\
+
+In order to study the property NP$\,\subseteq\,$PCP$(log\,n,\,1)$, we will use the introduced problem GAP-3SAT$_{1,c}$. We have the following property :
+\begin{proposition}
+NP$ \, \subseteq \, $PCP$(log \, n, \, 1) \, \Longleftrightarrow \, \exists $ $c < 1, \, $GAP-3SAT$_{1,c}$ is NP-hard
+\end{proposition}
+This proposition is equivalent to :\\
+$(\exists c <1,\,\forall \varepsilon > 0)\,\exists\,a\,(c+\varepsilon)-$approximation for MaxSAT $\Longrightarrow $P=NP
+
+\subsubsection{Proof $\Longleftarrow$}
+
+In the proposition 1, the direction $\Longleftarrow$ is the easiest to prove.
+
+Indeed, if GAP-3SAT$_{1,c}$ is a NP-hard problem, then we have a polynomial time reduction. For any language $L \in $NP we have the function $x\mapsto \varphi_{x}$ so that :
+\begin{itemize}
+\item if $x \in L,\,\varphi_{x}\in $SAT
+\item if $x \notin L$, at most $cn$ clauses of $\varphi_{x}$ are satisfied simultaneously
+\end{itemize}
+$ $
+
+Then, we will create a PCP-verifier which will be $V(x,y)$ where $y=y_{1}...y_{l}$ is the value of the variables of $\varphi_{x}$. The verifier will :
+\begin{enumerate}
+\item Draw a random clause of $\varphi_{x}$, $C_{j}$
+\item Output $C_{j}(y)$
+\end{enumerate}
+$ $
+
+Indeed, if $x \in L$, $\varphi_{x}$ is satisfiable, so $\exists y$ such that any clause is satisfiable. Then, whatever clause I chose, $C_{j}(y)=1$. If $x \notin L$, at most $cn$ clauses of $\varphi_{x}$ can be satisfied simultaneously so whatever $y$ I chose, there is a constant probability that $C_{j}(y)=0$. $V$ is well defined as a PCP-verifier.
+
+We can check that the parameters are correct, that $L \in $PCP$(log\, n, 1)$ : The clause chosen randomly among a number of clauses polynomial in the size of $x$, so we need $O(log\,|x|)=O(log\,n)$ bits to chose the clause. Then, we use only the value of only $3=O(1)$ variables, in order to calculate the value of the clause. $V$ is a $(log\,n,\,3)$-verifier.
+
+\subsubsection{Proof $\Longrightarrow$}
+In the opposite way, we suppose NP$\,\subseteq\,$PCP$(log\,n,\,1)$.
+
+Then, take $L \in NP$ and let $V$ be its $PCP$-verifier. $V$ uses $r=\theta (log\,n)$ random bits, asks for the value of $q=\theta (1)$ positions in y and outputs 0 or 1 such that :
+\begin{itemize}
+\item If $x \in L,\, \exists y,\, Pr{V(x,y)=1}<1$
+\item If $x \notin L,\, \forall y,\, Pr{V(x,y)=0}>1/2$
+\end{itemize}
+$ $
+
+For a random string $r$ and $q$ positions $y_{1},...,\,y_{q}$ in $y$, we define $f_{r}(y_{1},...,\,y_{q})$ is the output of $V$ for such values. Thus, $f_{r}(y_{1},...,\,y_{q})$ is a $SAT$ formula of $2^q$ clauses, so it is a 3SAT formula of $(q-2)2^q=\theta(1)$. Then we have :
+\begin{itemize}
+\item If $x \in L,\, \exists y,\, \forall r,\,f_{r}(y_{1},...,\,y_{q})=1$
+\item If $x \notin L,\, \forall y,\, \#\lbrace r|f_{r}(y_{1},...,\,y_{q})=1 \rbrace \leq \dfrac{1}{2} 2^r$
+\end{itemize}
+$ $
+
+Now, let define $\varphi_{x}=\bigwedge_{r}f_{r}(y)$. This formula can be computed in polynomial time, because there is a polynomial number of random string. This formula is of length $2^r(q-2)2^q$. Finally, we can choose $c=1-\dfrac{1}{q2^q}$. Any NP-problem can be reduce to GAP-3SAT$_{1,c}$, which proves the property.
+\end{document}
