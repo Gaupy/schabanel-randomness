@@ -1,0 +1,317 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage{amssymb,amsfonts,amsthm,amsmath}
+\usepackage{xspace}
+\usepackage{hyperref}
+%\usepackage{tikz}
+%\usetikzlibrary {arrows,snakes,backgrounds}
+%\usepgfmodule{plot}
+
+\theoremstyle{plain}
+\newtheorem{theo}{Théoreme}
+\newtheorem{lem}[theo]{Lemme}
+\newtheorem{prop}[theo]{Proposition}
+\newtheorem{corollaire}[theo]{Corollaire}
+\newtheorem{conj}[theo]{Conjecture}
+\theoremstyle{Definition}
+\newtheorem{defi}[theo]{Définition}
+\theoremstyle{remark}
+\newtheorem{exemple}[theo]{Remarke}
+
+\newcommand{\rg}{\mathrm{rg}}
+\newcommand{\poly}{\mathrm{poly}}
+
+\title{Algorithme sous-exponentiel pour l'approximation de Unique Games}
+
+\author{Nathanaël François}
+
+\begin{document}
+
+\maketitle
+
+Ceci est un résumé de l'article \cite{St10} par Arora, Barak et Steurer. On
+s'intéressera essentiellement à l'algorithme utilisé en admettant les
+détails des résultats préliminaires.
+
+\section{Préliminaires}
+
+L'algorithme présenté dans \cite{St10} se base beaucoup sur les expanseurs
+et sur la recherche d'ensemble non-expanseurs dans un graphe, nous
+présentons donc ici quelques résultats préliminaires :
+
+\subsection{Définitions}
+
+Soit $G=(V,E)$ un graphe. Comme usuellement, pour $S \subset V$ on note
+$\displaystyle \Phi(S) = \frac{E(S,\bar{S})}{|S|}$.
+
+Soit $\chi=(A_1,\dots,A_k)$ une partition de $V$. On définit $\displaystyle
+\Phi(\chi) = \frac{1}{|E|}\sum_{1 \leq i < j \leq k} |E(A_i,A_j)|$, la
+fraction d'arêtes coupées par $\chi$.
+
+\vspace{0.5cm}
+
+Un graphe est dit paresseux si tout sommet a une boucle de poids au moins
+$\frac{1}{2}$.
+
+Si $A \subset V$, on note $G[A]$ le graphe induit par $A$ auquel on a
+ajouté des boucles pour conserver le degré de chaque sommet de $A$. Ceci
+est pertinent car on utilise des graphes réguliers pour les résultats.
+
+\vspace{0.5cm}
+
+On définit également le rang de seuil $1-\eta$ $\rg_{1-\eta}(G)$
+comme le nombre de valeurs propres (avec multiplicité) telles que
+$|\lambda| > 1- \eta$ dans la matrice d'adjacence de $G$.
+
+On remarque que $\rg_0(G) = \rg(G)$.
+
+\vspace{0.5cm}
+
+$\rg_{1-\eta}(G)$ petit signifie que les valeurs propres autres que $1$ de
+$G$ sont petites, ce qui signifie qu'une marche aléatoire sur le graphe
+tend plus vite vers la distribution stationnaire, les vecteurs propres
+parasites étant vite éliminés, ce qui est relié au fait que les
+sous-graphes de petite taille aient une bonne expansion : on ne reste pas
+coincé dans un morceau du graphe longtemps.
+
+\subsection{Quelques résultats préliminaires}
+
+Voici les résultats que utilisés :
+
+\begin{theo}
+Il existe un algorithme en temps $\exp(\rg_{1-\eta}(G))\poly(n)$ qui prend
+en entrée $G=(V,E)$ un graphe de taille $n$ contenant $S \subset V$ tel que
+$\Phi(S) \leq \epsilon$ pour un $\epsilon > 0$, et calcule
+$(S_1,\dots,S_k)$ des sous-ensembles de $V$ tels qu'il existe $1\leq i\leq
+k$, $|S \Delta S_i| \leq 8|S|\frac{\epsilon}{\eta}$.
+\label{algo}
+\end{theo}
+
+Dans l'algorithme présenté par \cite{St10}, le graphe $G$ est d'abord
+divisé en morceaux de petits rang de seuil, puis on applique l'algorithme
+fourni par ce théorème.
+
+\begin{theo}
+Soit $G$ un graphe régulier de taille $n$ tel que $\rg_{1 - \eta}(G) \geq
+n^{100\frac{\eta}{\gamma}}$, $\gamma >0$. alors il existe $S \subset V$ tel
+que $|S| \leq n^{1 - \frac{\eta}{\gamma}}$ et $\Phi(S) \leq \sqrt{\gamma}$.
+
+De plus, il existe un algorithme en temps $\poly(n)$ qui calcule $S$
+\label{rg}
+\end{theo}
+
+Ce théorème confirme l'intuition donnée plus haut : un graphe avec une
+bonne expansion a un petit rang de seuil.
+
+\vspace{0.5cm}
+
+Cependant, dans la preuve de l'algorithme, nous aurons besoin d'un résultat
+légèrement plus fort. On définit $\displaystyle \rg^*_{1- \eta}(G) = min_{k
+  \in {\mathbb N}}\frac{Tr(G^{2k})}{(1-\eta)^{2k}}$.
+
+On a trivialement $\displaystyle Tr(G^{2k}) = \sum_{i=1}^n \lambda_i^{2k}
+\geq \rg_{1-\eta}(G)(1-\eta)^{2k}$, et par conséquent $\rg_{1-\eta}(G) \leq
+\rg^*_{1-\eta}(G)$.
+
+\begin{theo}
+Soit $G$ un graphe régulier paresseux de taille $n$ tel que $\rg^*_{1 -
+  \eta}(G) \geq n^{100\frac{\eta}{\gamma}}$, $\gamma >0$. Alors il existe
+$S \subset V$ tel que $|S| \leq n^{1 - \frac{\eta}{\gamma}}$ et $\Phi(S)
+\leq \sqrt{\gamma}$.
+\label{rg*}
+\end{theo}
+
+La preuve de ce résultat et du précédent n'est pas triviale, elle est
+donnée dans \cite{St10}.
+
+\section{Décomposition d'un graphe en morceaux de petits rangs de seuil}
+
+Le morceau essentiel de l'algorithme de \cite{St10} consiste à découper
+habilement le graphe de manière à garder des morceaux de petit rang de
+seuil, ce qui permet d'appliquer le théoreme \ref{algo}. Le découpage doit
+évidemment se faire rapidement, et en ne supprimant pas trop d'arrêtes, car
+toutes les arrêtes supprimées sont perdues.
+
+\begin{theo}
+Il existe un algorithme en temps polynomial qui prend en entrée un graphe
+$G$ $d$-régulier et $\epsilon > 0$ et renvoie $\chi = (A_1,\dots,A_q)$ une
+partition de $V$ telle que $\Phi(\chi) \leq O(- \epsilon \log (\epsilon))$
+et pour tout $1 \leq i \leq q$, $\rg_{1-\epsilon^5}(G[A_i]) \leq n^{100 \epsilon}$
+\label{algo2}
+\end{theo}
+
+Nous allons maintenant prouver ce résultat. On note $\Phi_U(S)$ la valeur
+de $\Phi(S)$ dans $G[U]$ pour $U \subset V$, et $\Phi_{\tau}(\chi)(G)$ le
+nombre d'arrêtes de $G$ coupées par $\chi$ non coupées par $\tau$, pour $\chi$
+et $\tau$ des partitions de $V$ et $\chi$ plus fine que $\tau$.
+
+Si $\chi = (A_1,\dots,A_q)$, on note $U_i = A_i \cup A_{i+1} \cup \dots
+\cup A_q$.
+
+\vspace{1cm}
+
+D'après le théorème \ref{rg}, instancié avec $\gamma = \epsilon^4$ et $\eta
+= \epsilon^5$, si $\rg_{1-\epsilon^5}(G) \geq n^{100 \epsilon}$, on peut
+trouver $S \subset V$ tel que $|S| \leq n^{1-\epsilon}$ et $\Phi(S) \leq
+O(\epsilon^2)$.
+
+\vspace{0.5cm}
+
+On répète le processus sur $G - S$. On obtient $\chi = (A_1,\dots,A_k,B)$ une
+partition de $V$ telle que pour $1\leq i \leq k$, $|A_i| \leq n^{1 -
+  \epsilon}$, $\Phi_{U_i}(A_i) \leq O(\epsilon^2)$, et $\rg_{1- \epsilon^5}(G[B])
+\leq n^{100 \epsilon}$, car sinon on pourrait continuer.
+
+Le nombre total d'arrêtes coupées par $\chi$ est au plus $\sum_{i=1}^r
+O(\epsilon^2)|A_i| = O(n \epsilon^2)$. $G$ est $d$-régulier donc on a bien
+$\Phi(\chi) \leq O(\epsilon ^2)$.
+
+\vspace{0.5cm}
+
+Maintenant, on répète ce processus sur les $A_i$ que l'on a obtenu. L'idée
+est d'obtenir des ensembles de très petite taille ou avec un rang de seuil
+petit.
+
+En effet, on a le lemme suivant :
+
+\begin{lem}
+Il existe un algorithme prenant en entrée $G$ graphe $d$-régulier de taille
+$n$ et $\epsilon > 0$ qui calcule une partition $\chi =
+(A_1,\dots,A_k,B_1,\dots,B_t)$ de $V$ telle que $\Phi(\chi) \leq O(-
+\epsilon \log(\epsilon))$, pour tout $1\leq i \leq k$, $|A_i| \leq n^{1 -
+  \epsilon}$, $\Phi_{U_i}(A_i) \leq O(\epsilon^2)$, et pour tout $1\leq j
+\leq t$, $\rg_{1- \epsilon^5}(G[B_j]) \leq n^{100 \epsilon}$.
+\end{lem}
+
+Il suffit pour cela d'appliquer l'algorithme précédent à tous les $A_i$, et
+de recommencer ce processus $t$ fois, pour $t$ tel que $(1- \epsilon)^t <
+\epsilon$. $t = O(\frac{ -\log(\epsilon)}{\epsilon})$ convient.
+
+La partition $\chi$ obtenue vérifie $\Phi(\chi) \leq O(t \epsilon^2) = O (-
+\epsilon \log(\epsilon))$. On a donc prouvé le lemme.
+
+\vspace{0.5cm}
+
+Pour finalement prouver le théorème, il faut transformer la contrainte sur
+la taille des $A_i$ en contrainte sur leur rang de seuil. Mais le rang de
+seuil de $G[A_i]$ est forcément inférieur à la taille de $A_i$, qui est
+$n^{\epsilon} \leq n^{100 \epsilon}$. Donc la partition $\chi$ donnée par
+le lemme précédent convient.
+
+On a donc prouvé le théorème \ref{algo2}.
+
+\vspace{1cm}
+
+Si on prend comme hypothèse supplémentaire que le graphe est paresseux, on
+peut refaire la démonstration ci-dessus en remplaçant $\rg$ par $\rg^*$
+grâce au théorème \ref{rg*}.
+
+\section{Algorithme sous-exponentiel pourl'approximation de Unique Games}
+
+\begin{theo}
+Il existe un algorithme en temps $\exp(kn^{O(\epsilon)})\poly(n)$ prenant
+en entrée une instance de Unique Games $G$ $d$-régulier de taille $n$,
+d'alphabet de taille $k$ et de valeur au moins $1 - \epsilon^6$ et qui
+calcule une assignation des sommets de valeur $1 - O(- \epsilon
+\log(\epsilon))$.
+\end{theo}
+
+Pour $G$ une instance de Unique Games, on se donne $\hat{G}$ le graphe des
+$(v,i)$, $v \in V$, $1 \leq i \leq k$, $((v,i), (w,j)) \in E$ si et
+seulement si $ j = \pi_{(v,w)}(i)$.
+
+Le problème revient alors à chercher dans $\hat{G}$ un sous-ensemble $S$
+qui rencontre une seule fois chaque $C_v = \{(v,i)\}_{1 \leq i \leq k}$ et
+a une faible expansion (donc satisfait une bonne fraction des contraintes).
+
+\vspace{0.5cm}
+
+On remarque que si $G$ est paresseux, i.e. si chaque sommet a la contrainte
+identité sur lui-même avec un poids $\frac{1}{2}$, alors
+$\rg^*_{1-\eta}(\hat{G}) \leq k \rg^*_{1-\eta}(\hat{G})$, car tout cycle dans 
+$\hat{G}$ correspond à un cycle de même longueur dans $G$, d'où 
+l'inégalité sur les traces.
+
+Pour cela, on va vouloir rendre $G$ paresseux afin d'utiliser cette
+inégalité et les résultats sur $\rg^*$
+
+\vspace{1cm}
+
+On considère l'algorithme suivant, sur $G$ comme dans le théorème :
+
+\begin{itemize}
+
+\item On commence par rendre $G$ paresseux en ajoutant des boucles avec la
+permutation identité comme contrainte.
+
+\item On applique l'algorithme du théorème \ref{algo2} sur $G$ pour obtenir une
+partition $\chi=(A_1,\dots,A_q)$ du graphe $G$ avec $\Phi(\chi) \leq
+O(-\epsilon \log(\epsilon))$ tel que pour tout $i$, $\rg^*_{1-
+  \epsilon^5}(A_i) \leq n^{100 \epsilon}$
+
+\item On se donne $(\hat{A_1},\dots,\hat{A_q})$ la partition correspondante
+  dans le graphe $\hat{G}$.
+
+\item Pour tout $1 \leq i \leq q$ on applique l'algorithme du théorème
+  \ref{algo} au graphe $\hat{G}[\hat{A_i}]$ et on obtient ${\mathcal S}_i$
+  un ensemble de parties de $A_i$. Pour chacun des $S \in {\mathcal S}_i$ ainsi
+  obtenus, on calcule une assignation $f_S$ des sommets qui associe une
+  couleur arbitraire à $v$ si $C_v \cap S = \emptyset$, et sinon choisit un
+  élément arbitraire de $C_v \cap S$. On note $f_i$ l'assignation $f_S$ qui
+  satisfait le plus de contraintes de $A_i$.
+
+\item Pour tout $1 \leq i \leq q$, les $v \in A_i$ sont coloriés selon $f_i$.
+
+\end{itemize}
+
+\vspace{1cm}
+
+Il est clair que cet algorithme s'éxécute en temps
+$\exp(kn^{O(\epsilon)})\poly(n)$ : la partie exponentielle vient de
+l'algorithme du théorème \ref{algo}, auquel on donne une entrée vérifiant
+$\rg^*_{1-\epsilon^5}(\hat{G[A_i]}) \leq kn^{O(\epsilon)}$.
+
+Il nous reste à montrer que l'algorithme est correct.
+
+\vspace{0.5cm}
+
+On se donne $f_{opt}$ une assignation qui satisfait une fraction $1 -
+\epsilon^6$ des contraintes. $f_{opt}$ satisfait au moins cette fraction
+des contraintes à l'intérieur des $A_i$, car on a rendu le graphe paresseux
+et donc divisé par deux le poids des contraintes suceptibles d'êtres non
+satisfaites.
+
+\vspace{0.5cm}
+
+Soit $1\leq i \leq q$, $S_{opt} \subset \hat{A_i}$ qui correspond à
+$f_{opt}$. $|A_i| = |S_{opt}|$. On a $\Phi(S_{opt})=\epsilon_i$, donc par
+le théorème \ref{algo}, il existe $S \in {\mathcal S}_i$ tel que $|S_{opt}
+\Delta S| \leq 8|A_t|\frac{\epsilon_i}{\epsilon^5}$.
+
+\vspace{0.5cm}
+
+Soit $S' \subset \hat{A_i}$ qui correspond à $f_S$. Par construction, $S$
+et $S'$ ne diffèrent au sommet $v$ que si $|C_v \cap S| \not = 1$, donc si
+$S$ et $S_{opt}$ diffèrent en $v$, car on a toujours $|C_v \cap S| = |C_v
+\cap S'| = 1$. 
+
+Donc $|S \Delta S'| = |S \Delta S_{opt}|$, donc $|S \Delta S_{opt}| \leq
+16|A_t|\frac{\epsilon_i}{\epsilon^5}$.
+
+\vspace{0.5cm}
+
+Donc l'assignation $f_{alg}$ vérifie au moins $n - \sum_{i=1}^q
+\epsilon_i|A_i| (1 + \frac{16}{\epsilon^5}) - n\Phi(\chi)$ contraintes, soit
+$n - n(\epsilon^6 + 16\epsilon) - O(-n \epsilon \log(\epsilon))$
+contraintes.
+
+On a bien une assignation de valeur $1 - O(-\epsilon \log(\epsilon))$.
+
+
+\bibliographystyle{alpha}
+\bibliography{biblio}
+
+\end{document} 

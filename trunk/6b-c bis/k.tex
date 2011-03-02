@@ -1,0 +1,79 @@
+\documentclass{llncs}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage[T1]{fontenc}
+  
+\usepackage{enumerate}
+
+\usepackage{graphicx}
+\usepackage{subfig}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\title{K -- Probabilistically Checkable Proofs}
+
+\author{Karolina Sołtys \\
+\email{ksoltys@students.mimuw.edu.pl}}
+\institute{}
+
+\begin{document}
+\maketitle
+\pagestyle{plain}
+
+
+\section{Self-correction of integer multiplication}
+
+Imagine that you have a deterministic program $A(x,y)$ that given two integers $x, y \in \{0,...,N-1\}$ is supposed to output $xy \mod N$, but unfortunatelly, it might be buggy. Let us assume that it gives wrong answers on 10\% of the input pairs (we do not know which ones, of course). The algorithm is a black-box for us, so we cannot track down the bug in the program's code. Still, we have a way of fixing it by using randomness.
+
+The crucial property is that multiplication in random self reducible, which means that if we know how to compute it on random instances, we know how to compute it on arbitrary instance. Let's see how it works.
+
+We draw independently two random numbers, $r, s \in \{0,...,N-1\}$, and we output $A(x+r, y+s) - A(x+r, s) - A(r, y+s) + A(r,s)$. Note that all four of the input instances are random. Now, if there are no errors, the output is equal to $(x+r)(y+s) - (x+r)s - r(y+s) + rs = xy$, and the probability of error is less than 40\%. 
+Why is it an improvement? Because we have reduced computing multiplication on an arbitrary instance (possibly a worst-case instance, where the deterministic algorithm $A$ always errs) to computing multiplication on random instances with non-zero probability of success (which we can even amplify).
+
+Why are the instances random? We have the following easy lemma:
+
+\begin{lemma} If $G$ is a group and $U$ a uniform random variable over $G$, then $\forall g \in G, \quad gU$ is a uniform random variable.\end{lemma}
+\begin{proof} $\forall y \in G \quad \Pr\{gU = y\} = \Pr\{U=g^{-1}y\} = {1 \over |G|}$ \end{proof}
+
+\section{Probabilistically Checkable Proofs}
+
+The PCP Theorem says that
+\begin{theorem}[PCP Theorem] $NP = PCP(\log n, 1)$ \end{theorem}
+where
+\begin{eqnarray*}
+PCP(r,q) & = & \{L: \exists \textrm{ polynomial time Turing machine }\ V\ {\rm s.t.} \\
+&(1) & \quad V \textrm{ uses }\ \Theta(r)\ \textrm{ random bits} \\
+&(2) & \quad V \textrm{ probes only }\ \Theta(q)\ \textrm{ bits of } y \\   
+&(3) & \quad \textrm{if }\ x \in L \quad \exists\, y\ \textrm{ s.t. }\ \Pr\{V(x,y) = 1\} = 1\\
+&(4) & \quad \textrm{if }\ x \not \in L \quad \forall\, y\ \Pr\{V(x,y) = 1\} \leq {1 \over 2}
+\end{eqnarray*}
+
+Less formally, this means that there are proofs for instances of the problems in the class NP that can be efficiently verified by a probabilistic machine that reads just a constant number of bits of the proof. 
+
+It is easy to show that $NP \supseteq PCP(\log n, 1)$ -- we nondeterministically guess the PCP proof (it has polynomial length) and then check every random string (there is a polynomial number of them). The other inclusion is much harder.
+\\
+
+We will show that this theorem is equivalent to the existence of problems that cannot be approximated up to some constant factor $c$ unless P=NP. 
+
+Let us consider the problem SAT as an optimization problem: we are given a CNF formula with $m$ clauses and we want to find an assignment that satisfies the maximal number of clauses. Cook's theorem tells us that deciding whether all $m$ clauses can be satisfied or whether we can satisfy at most $m-1$ clauses is NP-hard, which means that SAT is not $(1-{1 \over m} + \epsilon)$-approximable. The PCP theorem tells us that this gap can be amplified by showing a reduction from any problem in NP to SAT that reduces every yes-instance of the problem to a satisfiable instance of SAT, and every no-instance to a formula for which at most $cm$ clauses can be satisfied, for some $c < 1$. 
+
+
+Let us formalize this concept. Let GAPSAT$_{1,c}$ be the following decision problem. Given a CNF formula $\varphi$ decide whether
+\begin{itemize}
+\item $\varphi$ is satisfiable, or
+\item at most $cm$ clauses of $\varphi$ can be simultaneously satisfied.
+\end{itemize}
+For formulas that do not have either of these properties we can give an arbitrary answer. 
+
+We now want to prove that the nontrivial inclusion in the PCP theorem is equivalent to the fact that for some $c<1$ GAPSAT$_{1,c}$ is NP-hard.
+\\
+
+{\bf If GAPSAT$_{1,c}$ is NP-hard, then $NP \subseteq PCP(\log n, 1)$.} Let $L$ be a language in NP. We want to create a PCP proof for $L$, given a reduction from $L$ to GAPSAT$_{1,c}$ that for every instance $x$ of $L$ creates a 3CNF formula $\varphi_x$. The PCP verifier $V$ expects the proof $y$ to be the satisfying assignment for $\varphi_x$. It then draws a random clause $\gamma$ and checks the values assigned to the three variables of $\gamma$ by the assignment $y$ (it needs to check only three bits of $y$) and accepts if and only if the clause is satisfied. Note that in the positive case it will always accept, and in the negative one it will accept with probability at most $c$ (with probability at most $c$ it will draw a clause satisfied by the assignment). We can amplify this probability gap by repeating the trial, given that $c$ is a constant less than 1.
+\\
+
+{\bf If $NP \subseteq PCP(\log n, 1)$, then GAPSAT$_{1,c}$ is NP-hard.} Take $L$ in NP and let $V$ be its $PCP(\log n, 1)$ verifier. Let $y = y_1 y_2 ... y_n$ be the proposed proof. For every random string $r$ we can create a formula $\varphi_r(y_{i_1}, y_{i_1}, ..., y_{i_q})$ over the boolean variables $y_1, y_2, ..., y_n$ and using at most a constant number $q$ of these variables, describing the output of the verifier $V$ given the string $r$ and a proof consistent with $y$ on the bits that $V$ queries. Note that such a formula is a disjunction of at most $2^q$ clauses describing the assignments to the proof bits that make $V$ accept. We can easily transform this formula to an analogous CNF formula with the same number of clauses (every clause says, informally, ``I am not this particular input that makes the verifier reject''). We can make a conjunction of such formulas for every $r$ (there is a polynomial number of them) creating a formula $\rho$ and use this formula as an input to GAPSAT. For the yes-instances of $L$ the verifier always accepts, so for every $r$ the formula $\varphi_r(y_{i_1}, y_{i_1}, ..., y_{i_q})$ has all clauses satisfied, which makes the whole formula $\rho$ satisfied. For the no-instances of $L$ the verifier rejects for at least half of the random strings, so the formulas assigned to these strings have at least one clause not satisfied, which creates the desired gap.
+
+
+\end{document}

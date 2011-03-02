@@ -1,0 +1,90 @@
+\title{Derandomizing MAX-SAT using Conditional Expectation}
+\author{Senanayak Sesh Kumar Karri, \texttt{seshkumar@gmail.com}}
+\date{}
+\documentclass[10pt]{article}
+
+\begin{document}
+\maketitle
+\section{MAX-SAT}
+Let us consider MAX-SAT has $m$ clauses with each clause $C_j$ having $l_j$ literals in it. Let the MAX-SAT
+function be denoted by $\phi$. Let us assume the literal $x_i$ is $true$ in the original MAX-SAT $\phi$ gets transformed to  $\phi_i^0$ 
+and similarly $\phi_i^1$ when we assume $x_i$ is false.
+
+Let us assume a variable $y_i$ for each literal $x_i$ such that
+\begin{equation}
+y_i = \left\{
+\begin{array}{rl}
+1 & \mbox{if $x_i$ = true}, \\
+0 & \mbox{if $x_i$ = false} 
+
+\end{array} \right. \end{equation}
+
+Let us assume a variable $z_j$ for each clause $C_j$ such that
+\begin{equation}
+z_j = \left\{
+\begin{array}{rl}
+1 & \mbox{if $C_j$ is satisfied}, \\
+0 & \mbox{Otherwise } 
+\end{array} \right. 
+\end{equation}
+
+We use the notation $L_j^+ = \{ i : x_i \in C_j \}$ and $L_j^- = \{ i | \bar{x_i} \in C_j \}$ where $C_j$ is a clause and $x_i$ is a literal.
+
+\section{Algorithm 1 - Random Assignment}
+Random assignment should be the lower bound for the performance of any algorithm proposed because 
+it is the simplest possible way of solving a problem. 
+\begin{eqnarray}
+E(\mbox{cost(Algorithm 1)}) =  \sum_{j=1}^m E(z_j) = \sum_{j=1}^m Pr(z_j = 1) = \sum_{j=1}^m 1 - \frac{1}{2^{l_j}} \geq (1 - \frac{1}{2^{l_{min}}}).m \nonumber
+\end{eqnarray}
+where $l_{min} =$ size of the smallest clause in the MAX-SAT.
+\subsection{Derandomization}
+Using cost of expectation of the algorithm in equation-\label{algo-1} we can derandomize this algorithm in the following way. Let us consider a literal $x_i$. 
+\begin{eqnarray}
+E(\mbox{cost(Algorithm1)}) & = & E(\mbox{cost(Algorithm1)} | y_i = 0) Pr(y_i = 0) \nonumber \\
+                            & + &E(\mbox{cost(Algorithm1)} | y_i = 1) Pr(y_i = 1) \nonumber
+\end{eqnarray}
+which is using the average of the Expectation of the algorithm conditioned on literal $y_i$. Instead if we consider to assign a
+value to $y_i$ a value which maximizes using the conditional expectation i.e. $\max_a E(\mbox{cost(Algorithm1)} | y_i = a)$
+where $ a \in \{0,1\}$.
+
+The expectations conditioned on variable $y_i$ can be calculated as  
+\begin{eqnarray}
+E(\mbox{cost(Algorithm1)} | y_i = 0) & = &\sum_{C_j \in \phi_i^0} ( 1 - \frac{1}{2^l_j}) \nonumber \\
+E(\mbox{cost(Algorithm1)} | y_i = 1) & = &\sum_{C_j \in \phi_i^1} ( 1 - \frac{1}{2^l_j}) \nonumber
+\end{eqnarray}
+The above costs can be calculated deterministically in polynomial time. Hence we greedily assign $y_i$ the value that increases the expected cost of
+the algorithm.
+
+\section{Algorithm 2 - Linear Programming}
+Integer Program which represents the MAX-SAT is
+\begin{eqnarray}
+MAXSAT(\phi) & = &\max \sum_{j=0}^m z_j \nonumber \\
+\forall z_j  & \leq &\sum_{i \in L_j^+} y_i + \sum_{i \in L_j^-} (1 - y_i) \nonumber \\
+\forall j\mbox{ : } z_j \in \{0, 1\} & \mbox{ and } & \forall i\mbox{ : }  y_i \in \{0, 1\} \nonumber 
+\end{eqnarray}
+
+We get a linear program on relaxing the integer constraints such that $0 \leq z_j \leq 1$ and $0 \leq y_i \leq 1$. Let $y_i^*$ and $z_i^*$ be the solutions that are obtained by solving this Linear Program.
+\begin{eqnarray}
+E(\mbox{cost(Algorithm 2)}) &\geq& \sum_{j=1}^m (1 - \frac{1}{e}) z_j^* = ( 1 - \frac{1}{e}) OPT_f \geq (1 - \frac{1}{e}).OPT \nonumber
+\end{eqnarray}
+where $OPT_f$ is the fractional solution from  Relaxed Linear Program and $OPT$ is the Optimal solution for Integer Program representing MAX-SAT.
+\subsection{Derandomization}
+We can derandomize this algorithm also similar to the derandomizing the above Algorithm-1 by calculating the conditional expectations and assigning the 
+value which fetches maximum expected cost.
+\begin{eqnarray}
+E(\mbox{cost(Algorithm2)} | y_i = 0) & = &\sum_{C_j \in \phi_i^0} ( 1 - \prod_{i\in L_j^+}(1 - y_i^*) \prod_{i \in L_j^-} y_i^*) \nonumber \\
+E(\mbox{cost(Algorithm2)} | y_i = 1) & = &\sum_{C_j \in \phi_i^1} ( 1 - \prod_{i\in L_j^+}(1 - y_i^*) \prod_{i \in L_j^-} y_i^*) \nonumber
+\end{eqnarray}
+
+%\section{Algorithm 3 - Combining both}
+%Solve MAX-SAT using Algorithm-1 with probability $1/2$ and Algorithm-2 with probability $1/2$.
+%\begin{eqnarray}
+%E(\mbox{cost(Algorithm 3)}) & =    & \sum_{j=1}^m Pr(z_j = 1) \nonumber \\
+%Pr(z_j = 1)                 & \geq &  \frac{1}{2} ( ( 1 - \frac{1}{2^{l_j}}) + ( 1 - ( 1 - \frac{1}{e}))^{l_j}) \\
+%                            & \geq &  1 - \frac{1}{2^{l_j+1}} - \frac{1}{2}(1 - \frac{1}{l_j})^{l_j}
+%\end{eqnarray}
+%\subsection{Derandomization}
+%\bibliographystyle{abbrv}
+%\bibliography{mgreport}
+
+\end{document}

@@ -1,0 +1,6 @@
+Petite remarque pour la compilation, nous avons utilisé le package pstricks
+pour les figures, donc il n'est pas possible d'obtenir directement une sortie
+en pdf. Pour cela il faut :
+1. compiler en dvi : latex rapport.tex
+2. dvi->ps : dvips rapport.dvi rapport.ps
+3 ps->pdf : ps2pdf rapport.ps rapport.pdf
