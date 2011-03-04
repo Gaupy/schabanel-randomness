@@ -1,0 +1,20 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8x]{inputenc}
+\usepackage[english]{babel}
+\usepackage{calc,amsmath, amssymb, amsthm}
+\usepackage{pst-all}
+
+\begin{document}
+\pagestyle{empty}
+\begin{pspicture}(0,-0.5)(10,1)
+\psframe(0,0)(5,0.6)
+\psframe(4.95,0)(10,0.6)
+\pcline[arrows=<->](0,-0.3)(5,-0.3)
+\ncput*{$2^n$ bits}
+\pcline[arrows=<->](5,-0.3)(10,-0.3)
+\ncput*{$2^{n^2}$ bits}
+\rput(2.5,0.3){$f:r\mapsto {}^tr\cdot x$}
+\rput(7.5,0.3){$g:s\mapsto {}^ts\cdot (x\otimes x)$}
+\end{pspicture}
+
+\end{document}
